@@ -28,6 +28,15 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
     load();
   }, []);
 
+  const safeData = {
+    total_accounts_found: Number(data?.total_accounts_found) || 0,
+    active_platforms: Array.isArray(data?.active_platforms) ? data.active_platforms : [],
+    categories: data?.categories && typeof data.categories === 'object' ? data.categories : {},
+    research_papers_found: Number(data?.research_papers_found) || 0,
+    breach_records_found: Number(data?.breach_records_found) || 0,
+    profiles: Array.isArray(data?.profiles) ? data.profiles : []
+  };
+
   return (
     <div>
       {!embedded ? <PageHeader title="Digital Footprint Summary" subtitle="A simple overview of where you appear online." /> : null}
@@ -46,24 +55,24 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               <div className="rounded-xl border border-white/10 bg-surface/70 p-3">
                 <p className="text-xs uppercase tracking-[0.16em] text-muted">Accounts Found</p>
-                <p className="mt-2 text-3xl font-semibold">{data.total_accounts_found}</p>
+                <p className="mt-2 text-3xl font-semibold">{safeData.total_accounts_found}</p>
               </div>
               <div className="rounded-xl border border-white/10 bg-surface/70 p-3">
                 <p className="text-xs uppercase tracking-[0.16em] text-muted">Active Platforms</p>
-                <p className="mt-2 text-3xl font-semibold">{data.active_platforms.length}</p>
+                <p className="mt-2 text-3xl font-semibold">{safeData.active_platforms.length}</p>
               </div>
               <div className="rounded-xl border border-white/10 bg-surface/70 p-3">
                 <p className="text-xs uppercase tracking-[0.16em] text-muted">Research Records</p>
-                <p className="mt-2 text-3xl font-semibold">{data.research_papers_found}</p>
+                <p className="mt-2 text-3xl font-semibold">{safeData.research_papers_found}</p>
               </div>
               <div className="rounded-xl border border-white/10 bg-surface/70 p-3">
                 <p className="text-xs uppercase tracking-[0.16em] text-muted">Breach Records</p>
-                <p className="mt-2 text-3xl font-semibold">{data.breach_records_found}</p>
+                <p className="mt-2 text-3xl font-semibold">{safeData.breach_records_found}</p>
               </div>
             </div>
 
             <div className="mt-5 flex flex-wrap gap-2">
-              {data.active_platforms.map((platform) => (
+              {safeData.active_platforms.map((platform) => (
                 <span key={platform} className="sg-chip">{platform}</span>
               ))}
             </div>
@@ -72,7 +81,7 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
           <GlassCard className="p-5">
             <h3 className="text-lg font-semibold">Platform categories</h3>
             <div className="mt-4 space-y-3 text-sm">
-              {Object.entries(data.categories || {}).map(([name, count]) => {
+              {Object.entries(safeData.categories).map(([name, count]) => {
                 const safeCount = Number(count) || 0;
                 const width = Math.max(6, Math.min(100, safeCount * 12));
                 return (
@@ -92,12 +101,12 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
 
           <GlassCard className="p-5 xl:col-span-2">
             <h3 className="text-lg font-semibold">Profiles found</h3>
-            {!data.profiles?.length ? (
+            {!safeData.profiles.length ? (
               <EmptyState className="mt-3" message="Run Username Engine or Face Recognition to build your profile list." />
             ) : (
               <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {data.profiles.map((row) => (
-                  <div key={`${row.platform}-${row.profile_url}`} className="rounded-xl border border-white/10 bg-surface/70 p-3">
+                {safeData.profiles.map((row, idx) => (
+                  <div key={`${row.platform || 'platform'}-${row.profile_url || 'url'}-${idx}`} className="rounded-xl border border-white/10 bg-surface/70 p-3">
                     <p className="text-sm font-medium">{row.platform}</p>
                     <p className="text-xs text-muted">{row.category}</p>
                     <p className="mt-1 text-xs text-muted">@{row.username || 'unknown'}</p>
