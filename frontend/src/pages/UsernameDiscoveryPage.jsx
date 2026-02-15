@@ -49,7 +49,7 @@ export default function UsernameDiscoveryPage({ embedded = false }) {
   return (
     <div>
       {!embedded ? (
-        <PageHeader title="Username Discovery" subtitle="Search by username or full name. We also try variants like dots, underscores, and swapped order." />
+        <PageHeader title="Username Discovery" subtitle="Search by username or full name. We try safe public-name variations and show only links that are actually reachable." />
       ) : null}
 
       <GlassCard className="p-5 md:p-6">
@@ -82,23 +82,21 @@ export default function UsernameDiscoveryPage({ embedded = false }) {
                 <tr className="sg-table-head">
                   <th className="pb-2">Platform</th>
                   <th className="pb-2">Username</th>
-                  <th className="pb-2">Status</th>
                   <th className="pb-2">Profile Link</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((row, idx) => (
-                  <motion.tr initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: idx * 0.03 }} key={row.platform} className="sg-table-row">
+                  <motion.tr initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: idx * 0.03 }} key={`${row.platform}-${row.link}-${idx}`} className="sg-table-row">
                     <td className="py-3">{row.platform}</td>
                     <td className="py-3">{row.username}</td>
-                    <td className={`py-3 ${row.status === 'Found' ? 'text-cyan' : 'text-muted'}`}>{row.status}</td>
-                    <td className="py-3">{row.link === '-' ? '-' : <a className="text-accent hover:underline" href={row.link}>{row.link}</a>}</td>
+                    <td className="py-3"><a className="text-accent hover:underline" href={row.link} target="_blank" rel="noreferrer">{row.link}</a></td>
                   </motion.tr>
                 ))}
               </tbody>
             </table>
 
-            {!rows.length && !loading ? <EmptyState className="mt-3" message="Enter a username and launch scan." /> : null}
+            {!rows.length && !loading ? <EmptyState className="mt-3" message="No reachable public profiles were found for this input. Try another name variation." /> : null}
           </div>
         ) : null}
       </GlassCard>

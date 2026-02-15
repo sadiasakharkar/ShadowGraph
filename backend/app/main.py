@@ -96,7 +96,6 @@ PLATFORMS = [
     {'name': 'Kaggle', 'url_template': 'https://www.kaggle.com/{username}', 'category': 'Coding'},
     {'name': 'GeeksforGeeks', 'url_template': 'https://www.geeksforgeeks.org/user/{username}/', 'category': 'Coding'},
     {'name': 'Stack Overflow', 'url_template': 'https://stackoverflow.com/users/{username}', 'category': 'Coding'},
-    {'name': 'Dev.to', 'url_template': 'https://dev.to/{username}', 'category': 'Coding'},
     {'name': 'Hashnode', 'url_template': 'https://hashnode.com/@{username}', 'category': 'Coding'},
     {'name': 'Replit', 'url_template': 'https://replit.com/@{username}', 'category': 'Coding'},
     {'name': 'CodePen', 'url_template': 'https://codepen.io/{username}', 'category': 'Coding'},
@@ -132,9 +131,6 @@ PLATFORMS = [
     {'name': 'GitHub Pages', 'url_template': 'https://{username}.github.io', 'category': 'Blogs'},
     {'name': 'Personal .com Site', 'url_template': 'https://{username}.com', 'category': 'Blogs'},
     {'name': 'Personal .org Site', 'url_template': 'https://{username}.org', 'category': 'Blogs'},
-    {'name': 'Behance', 'url_template': 'https://www.behance.net/{username}', 'category': 'Social'},
-    {'name': 'Dribbble', 'url_template': 'https://dribbble.com/{username}', 'category': 'Social'},
-    {'name': 'DEV Community Profile', 'url_template': 'https://dev.to/{username}', 'category': 'Blogs'},
 ]
 
 RATE_LIMITS = {
@@ -1254,15 +1250,24 @@ async def scan_username(
         best = candidates[0]
         results.append(best)
 
+    # Return only ethically reachable and confirmed profile links.
+    found_results = [
+        row
+        for row in results
+        if row.get('status') == 'Found'
+        and isinstance(row.get('profile_url'), str)
+        and row.get('profile_url', '').startswith(('http://', 'https://'))
+    ]
+
     duration_ms = int((time.perf_counter() - started) * 1000)
-    found_count = sum(1 for result in results if result['status'] == 'Found')
+    found_count = len(found_results)
 
     response_payload = {
         'username': payload.username,
         'username_variants_checked': variants,
-        'results': results,
+        'results': found_results,
         'summary': {
-            'total_platforms': len(results),
+            'total_platforms': len(PLATFORMS),
             'found': found_count,
             'duration_ms': duration_ms,
         },

@@ -48,6 +48,10 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
         </div>
       ) : null}
 
+      {!loading && !error && !data ? (
+        <EmptyState message="Your footprint summary will appear here after at least one successful scan." />
+      ) : null}
+
       {!loading && !error && data ? (
         <div className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
           <GlassCard className="p-5">

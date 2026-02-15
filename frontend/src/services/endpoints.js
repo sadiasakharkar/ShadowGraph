@@ -1,15 +1,6 @@
 import { apiClient } from './apiClient';
 import { ApiError, normalizeApiError } from './apiErrors';
 
-function profileLink(platform, username) {
-  const key = platform.toLowerCase();
-  if (key.includes('linkedin')) return `https://linkedin.com/in/${username}`;
-  if (key.includes('github')) return `https://github.com/${username}`;
-  if (key.includes('leetcode')) return `https://leetcode.com/${username}`;
-  if (key.includes('geeksforgeeks')) return `https://geeksforgeeks.org/user/${username}`;
-  return '-';
-}
-
 export async function scanFace(imageFile, searchText = '') {
   try {
     if (!imageFile) {
@@ -163,12 +154,14 @@ export async function scanUsername(username) {
     const { data } = await apiClient.post('/scan-username', { username });
     const rows = data.results || [];
 
-    return rows.map((row) => ({
-      platform: row.platform,
-      username: row.username || username,
-      status: row.status,
-      link: row.status === 'Found' ? row.profile_url || profileLink(row.platform, row.username || username) : '-'
-    }));
+    return rows
+      .filter((row) => row?.status === 'Found' && typeof row?.profile_url === 'string' && row.profile_url.startsWith('http'))
+      .map((row) => ({
+        platform: row.platform,
+        username: row.username || username,
+        status: 'Found',
+        link: row.profile_url
+      }));
   } catch (error) {
     throw normalizeApiError(error, 'Failed to scan username across platforms.');
   }
