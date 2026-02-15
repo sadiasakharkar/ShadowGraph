@@ -8,11 +8,13 @@ const links = [
   ['Footprint Summary', '/app/footprint-summary', '04'],
   ['Research Papers', '/app/research', '05'],
   ['Reputation Insight', '/app/reputation-insight', '06'],
-  ['Profile Dashboard', '/app/profile-dashboard', '07'],
-  ['Breach Check', '/app/breach', '08'],
-  ['Reports', '/app/reports', '09'],
-  ['Profile Settings', '/app/settings', '10'],
-  ['Operations', '/app/ops', '11']
+  ['AI Story', '/app/insight-story', '07'],
+  ['Skill Growth', '/app/skill-growth', '08'],
+  ['Timeline & Persona', '/app/timeline-persona', '09'],
+  ['Predictive & Ethics', '/app/predictive-ethics', '10'],
+  ['Profile Dashboard', '/app/profile-dashboard', '11'],
+  ['Reports', '/app/reports', '12'],
+  ['Profile Settings', '/app/settings', '13']
 ];
 
 function Brand() {

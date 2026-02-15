@@ -77,6 +77,87 @@ export async function getProfileDashboard() {
   }
 }
 
+export async function getAiNarrative() {
+  try {
+    const { data } = await apiClient.get('/ai-narrative');
+    return data.stories || [];
+  } catch (error) {
+    throw normalizeApiError(error, 'Failed to load narrative.');
+  }
+}
+
+export async function getPrivacyAlerts() {
+  try {
+    const { data } = await apiClient.get('/privacy-alerts');
+    return data.alerts || [];
+  } catch (error) {
+    throw normalizeApiError(error, 'Failed to load privacy alerts.');
+  }
+}
+
+export async function getSkillRadar() {
+  try {
+    const { data } = await apiClient.get('/skill-radar');
+    return data;
+  } catch (error) {
+    throw normalizeApiError(error, 'Failed to load skill radar.');
+  }
+}
+
+export async function getNetworkingOpportunities() {
+  try {
+    const { data } = await apiClient.get('/networking-opportunities');
+    return data.opportunities || [];
+  } catch (error) {
+    throw normalizeApiError(error, 'Failed to load networking opportunities.');
+  }
+}
+
+export async function getActivityTimeline() {
+  try {
+    const { data } = await apiClient.get('/activity-timeline');
+    return data.timeline || [];
+  } catch (error) {
+    throw normalizeApiError(error, 'Failed to load activity timeline.');
+  }
+}
+
+export async function getPublicPersonaScore() {
+  try {
+    const { data } = await apiClient.get('/public-persona-score');
+    return data;
+  } catch (error) {
+    throw normalizeApiError(error, 'Failed to load public persona score.');
+  }
+}
+
+export async function getAchievements() {
+  try {
+    const { data } = await apiClient.get('/achievements');
+    return data.badges || [];
+  } catch (error) {
+    throw normalizeApiError(error, 'Failed to load achievements.');
+  }
+}
+
+export async function getPredictiveAnalytics() {
+  try {
+    const { data } = await apiClient.get('/predictive-analytics');
+    return data;
+  } catch (error) {
+    throw normalizeApiError(error, 'Failed to load predictive analytics.');
+  }
+}
+
+export async function getEthicalVerification() {
+  try {
+    const { data } = await apiClient.get('/ethical-verification');
+    return data.checklist || [];
+  } catch (error) {
+    throw normalizeApiError(error, 'Failed to load ethical verification.');
+  }
+}
+
 export async function scanUsername(username) {
   try {
     const { data } = await apiClient.post('/scan-username', { username });
@@ -195,6 +276,15 @@ export async function exportPdfReport() {
     return response.data;
   } catch (error) {
     throw normalizeApiError(error, 'Failed to export report.');
+  }
+}
+
+export async function exportJsonReport() {
+  try {
+    const { data } = await apiClient.get('/report/export/json');
+    return data;
+  } catch (error) {
+    throw normalizeApiError(error, 'Failed to export JSON report.');
   }
 }
 

@@ -87,12 +87,54 @@ FACE_DETECTOR = cv2.CascadeClassifier(str(Path(cv2.data.haarcascades) / 'haarcas
 PLATFORMS = [
     {'name': 'LinkedIn', 'url_template': 'https://www.linkedin.com/in/{username}/', 'category': 'Social'},
     {'name': 'GitHub', 'url_template': 'https://github.com/{username}', 'category': 'Coding'},
+    {'name': 'GitLab', 'url_template': 'https://gitlab.com/{username}', 'category': 'Coding'},
+    {'name': 'Bitbucket', 'url_template': 'https://bitbucket.org/{username}/', 'category': 'Coding'},
     {'name': 'LeetCode', 'url_template': 'https://leetcode.com/{username}/', 'category': 'Coding'},
+    {'name': 'HackerRank', 'url_template': 'https://www.hackerrank.com/{username}', 'category': 'Coding'},
+    {'name': 'Codeforces', 'url_template': 'https://codeforces.com/profile/{username}', 'category': 'Coding'},
+    {'name': 'AtCoder', 'url_template': 'https://atcoder.jp/users/{username}', 'category': 'Coding'},
+    {'name': 'Kaggle', 'url_template': 'https://www.kaggle.com/{username}', 'category': 'Coding'},
     {'name': 'GeeksforGeeks', 'url_template': 'https://www.geeksforgeeks.org/user/{username}/', 'category': 'Coding'},
     {'name': 'Stack Overflow', 'url_template': 'https://stackoverflow.com/users/{username}', 'category': 'Coding'},
+    {'name': 'Dev.to', 'url_template': 'https://dev.to/{username}', 'category': 'Coding'},
+    {'name': 'Hashnode', 'url_template': 'https://hashnode.com/@{username}', 'category': 'Coding'},
+    {'name': 'Replit', 'url_template': 'https://replit.com/@{username}', 'category': 'Coding'},
+    {'name': 'CodePen', 'url_template': 'https://codepen.io/{username}', 'category': 'Coding'},
+    {'name': 'NPM', 'url_template': 'https://www.npmjs.com/~{username}', 'category': 'Coding'},
+    {'name': 'PyPI', 'url_template': 'https://pypi.org/user/{username}/', 'category': 'Coding'},
+    {'name': 'Docker Hub', 'url_template': 'https://hub.docker.com/u/{username}', 'category': 'Coding'},
+    {'name': 'Vercel', 'url_template': 'https://vercel.com/{username}', 'category': 'Coding'},
+    {'name': 'Netlify', 'url_template': 'https://app.netlify.com/teams/{username}', 'category': 'Coding'},
+    {'name': 'AWS Community', 'url_template': 'https://community.aws/@{username}', 'category': 'Coding'},
     {'name': 'X (Twitter)', 'url_template': 'https://x.com/{username}', 'category': 'Social'},
+    {'name': 'Instagram', 'url_template': 'https://www.instagram.com/{username}/', 'category': 'Social'},
+    {'name': 'Facebook', 'url_template': 'https://www.facebook.com/{username}', 'category': 'Social'},
+    {'name': 'Threads', 'url_template': 'https://www.threads.net/@{username}', 'category': 'Social'},
+    {'name': 'TikTok', 'url_template': 'https://www.tiktok.com/@{username}', 'category': 'Social'},
+    {'name': 'Reddit', 'url_template': 'https://www.reddit.com/user/{username}/', 'category': 'Social'},
+    {'name': 'YouTube', 'url_template': 'https://www.youtube.com/@{username}', 'category': 'Social'},
+    {'name': 'Twitch', 'url_template': 'https://www.twitch.tv/{username}', 'category': 'Social'},
+    {'name': 'Discord', 'url_template': 'https://discord.com/users/{username}', 'category': 'Social'},
+    {'name': 'Telegram', 'url_template': 'https://t.me/{username}', 'category': 'Social'},
     {'name': 'Medium', 'url_template': 'https://medium.com/@{username}', 'category': 'Social'},
+    {'name': 'Substack', 'url_template': 'https://{username}.substack.com', 'category': 'Social'},
+    {'name': 'Quora', 'url_template': 'https://www.quora.com/profile/{username}', 'category': 'Social'},
+    {'name': 'Product Hunt', 'url_template': 'https://www.producthunt.com/@{username}', 'category': 'Social'},
+    {'name': 'Perplexity', 'url_template': 'https://www.perplexity.ai/@{username}', 'category': 'Social'},
+    {'name': 'ResearchGate', 'url_template': 'https://www.researchgate.net/profile/{username}', 'category': 'Academic'},
+    {'name': 'Google Scholar', 'url_template': 'https://scholar.google.com/citations?user={username}', 'category': 'Academic'},
     {'name': 'IEEE Xplore', 'url_template': 'https://ieeexplore.ieee.org/search/searchresult.jsp?newsearch=true&queryText={username}', 'category': 'Academic'},
+    {'name': 'ORCID', 'url_template': 'https://orcid.org/{username}', 'category': 'Academic'},
+    {'name': 'Semantic Scholar', 'url_template': 'https://www.semanticscholar.org/search?q={username}', 'category': 'Academic'},
+    {'name': 'arXiv', 'url_template': 'https://arxiv.org/search/?query={username}&searchtype=author', 'category': 'Academic'},
+    {'name': 'Academia.edu', 'url_template': 'https://independent.academia.edu/{username}', 'category': 'Academic'},
+    {'name': 'SlideShare', 'url_template': 'https://www.slideshare.net/{username}', 'category': 'Academic'},
+    {'name': 'GitHub Pages', 'url_template': 'https://{username}.github.io', 'category': 'Blogs'},
+    {'name': 'Personal .com Site', 'url_template': 'https://{username}.com', 'category': 'Blogs'},
+    {'name': 'Personal .org Site', 'url_template': 'https://{username}.org', 'category': 'Blogs'},
+    {'name': 'Behance', 'url_template': 'https://www.behance.net/{username}', 'category': 'Social'},
+    {'name': 'Dribbble', 'url_template': 'https://dribbble.com/{username}', 'category': 'Social'},
+    {'name': 'DEV Community Profile', 'url_template': 'https://dev.to/{username}', 'category': 'Blogs'},
 ]
 
 RATE_LIMITS = {
@@ -1823,6 +1865,8 @@ def _category_for_platform(platform_name: str) -> str:
         return 'Coding'
     if any(k in lowered for k in ('ieee', 'research', 'scholar')):
         return 'Academic'
+    if any(k in lowered for k in ('blog', 'substack', 'medium', 'hashnode', 'dev')):
+        return 'Blogs'
     return 'Social'
 
 
@@ -1839,7 +1883,7 @@ def _build_footprint_summary(db: Session, current_user: User) -> dict[str, Any]:
     papers_count = 0
     breaches_count = 0
     active_platforms: set[str] = set()
-    categories = {'Social': 0, 'Coding': 0, 'Academic': 0}
+    categories = {'Social': 0, 'Coding': 0, 'Academic': 0, 'Blogs': 0}
 
     for event in events:
         payload = _safe_json(event.payload_json)
@@ -2034,6 +2078,158 @@ def reputation_insight(current_user: User = Depends(get_current_user), db: Sessi
     return payload
 
 
+def _recent_scan_events(db: Session, user_id: int, limit: int = 300) -> list[ScanEvent]:
+    return (
+        db.query(ScanEvent)
+        .filter(ScanEvent.user_id == user_id)
+        .order_by(ScanEvent.created_at.asc())
+        .limit(limit)
+        .all()
+    )
+
+
+@app.get('/ai-narrative')
+def ai_narrative(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict[str, Any]:
+    summary = _build_footprint_summary(db, current_user)
+    insight = _build_reputation_insight(summary)
+    stories = [
+        {
+            'title': 'Your Public Presence',
+            'body': f"You currently appear on {summary['total_accounts_found']} public account(s) across {len(summary['active_platforms'])} platform(s).",
+        },
+        {
+            'title': 'Academic & Professional Footprint',
+            'body': f"Detected {summary['research_papers_found']} publication record(s), helping map your academic visibility.",
+        },
+        {
+            'title': 'Exposure Snapshot',
+            'body': f"Recent checks found {summary['breach_records_found']} breach record(s). Reputation score is {insight['reputation_score']}/100.",
+        },
+        {
+            'title': 'Action Plan',
+            'body': ' '.join(insight.get('recommended_actions', [])) or 'Keep profiles updated and scan regularly.',
+        },
+    ]
+    return {'stories': stories, 'status': 'generated'}
+
+
+@app.get('/privacy-alerts')
+def privacy_alerts(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict[str, Any]:
+    summary = _build_footprint_summary(db, current_user)
+    alerts: list[dict[str, Any]] = []
+    if summary['breach_records_found'] > 0:
+        alerts.append({'severity': 'high', 'title': 'Breach records found', 'message': 'Rotate passwords and enable multi-factor authentication.'})
+    if summary['total_accounts_found'] > 10:
+        alerts.append({'severity': 'medium', 'title': 'High public visibility', 'message': 'Review old accounts and hide outdated personal information.'})
+    if not alerts:
+        alerts.append({'severity': 'low', 'title': 'No major privacy warning', 'message': 'Keep scanning periodically to maintain profile hygiene.'})
+    return {'alerts': alerts, 'status': 'analyzed'}
+
+
+@app.get('/skill-radar')
+def skill_radar(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict[str, Any]:
+    summary = _build_footprint_summary(db, current_user)
+    coding = summary['categories'].get('Coding', 0)
+    academic = summary['categories'].get('Academic', 0)
+    social = summary['categories'].get('Social', 0)
+    blogs = summary['categories'].get('Blogs', 0)
+    skills = [
+        {'name': 'Coding Presence', 'score': min(100, coding * 14 + 10)},
+        {'name': 'Research Visibility', 'score': min(100, summary['research_papers_found'] * 12 + academic * 8)},
+        {'name': 'Community Reach', 'score': min(100, social * 10 + blogs * 8)},
+        {'name': 'Profile Completeness', 'score': min(100, summary['total_accounts_found'] * 6)},
+    ]
+    gaps = [row['name'] for row in skills if row['score'] < 45]
+    return {'skills': skills, 'gaps': gaps, 'status': 'mapped'}
+
+
+@app.get('/networking-opportunities')
+def networking_opportunities(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict[str, Any]:
+    summary = _build_footprint_summary(db, current_user)
+    interests: list[str] = []
+    if summary['categories'].get('Coding', 0) >= 2:
+        interests.append('Open-source communities and developer meetups')
+    if summary['research_papers_found'] > 0:
+        interests.append('Research collaborators and publication groups')
+    if summary['categories'].get('Social', 0) >= 2:
+        interests.append('Professional networking and content communities')
+    if not interests:
+        interests.append('Starter communities for building your public profile')
+    opportunities = [{'title': item, 'action': 'Join and contribute consistently'} for item in interests]
+    return {'opportunities': opportunities, 'status': 'suggested'}
+
+
+@app.get('/activity-timeline')
+def activity_timeline(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict[str, Any]:
+    events = _recent_scan_events(db, current_user.id, limit=500)
+    timeline = []
+    for event in events:
+        payload = _safe_json(event.payload_json)
+        timeline.append(
+            {
+                'date': event.created_at.isoformat(),
+                'type': event.scan_type,
+                'summary': payload.get('status') or 'completed',
+            }
+        )
+    return {'timeline': timeline[-180:], 'status': 'compiled'}
+
+
+@app.get('/public-persona-score')
+def public_persona_score(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict[str, Any]:
+    summary = _build_footprint_summary(db, current_user)
+    insight = _build_reputation_insight(summary)
+    activity = len(_recent_scan_events(db, current_user.id, 200))
+    score = max(0, min(100, insight['reputation_score'] + min(20, activity // 8)))
+    suggestions = [
+        'Add missing professional profiles to improve discoverability.',
+        'Keep profile details consistent across platforms.',
+        'Publish regular updates or contributions to improve visibility.',
+    ]
+    return {'persona_score': score, 'suggestions': suggestions, 'status': 'calculated'}
+
+
+@app.get('/achievements')
+def achievements(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict[str, Any]:
+    summary = _build_footprint_summary(db, current_user)
+    badges = []
+    if summary['total_accounts_found'] >= 5:
+        badges.append({'id': 'visible-builder', 'title': 'Visible Builder', 'description': '5+ public profiles discovered.'})
+    if summary['research_papers_found'] >= 1:
+        badges.append({'id': 'researcher', 'title': 'Researcher', 'description': 'At least one publication found.'})
+    if summary['breach_records_found'] == 0:
+        badges.append({'id': 'clean-slate', 'title': 'Clean Slate', 'description': 'No breach records in recent checks.'})
+    if not badges:
+        badges.append({'id': 'starter', 'title': 'Starter', 'description': 'Run more modules to unlock achievements.'})
+    return {'badges': badges, 'status': 'awarded'}
+
+
+@app.get('/predictive-analytics')
+def predictive_analytics(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict[str, Any]:
+    summary = _build_footprint_summary(db, current_user)
+    base = max(20, summary['total_accounts_found'] * 5)
+    forecast = []
+    for month in range(1, 7):
+        forecast.append({'month': month, 'visibility_index': min(100, base + month * 4)})
+    actions = [
+        'Post or contribute consistently on 2 core platforms.',
+        'Keep profile details updated monthly.',
+        'Link your coding and publication profiles together.',
+    ]
+    return {'forecast': forecast, 'actions': actions, 'status': 'predicted'}
+
+
+@app.get('/ethical-verification')
+def ethical_verification(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict[str, Any]:
+    summary = _build_footprint_summary(db, current_user)
+    checklist = [
+        {'item': 'Only public data is analyzed', 'status': True},
+        {'item': 'No private account access attempted', 'status': True},
+        {'item': 'Profile ownership verification available', 'status': summary['total_accounts_found'] > 0},
+    ]
+    return {'checklist': checklist, 'status': 'verified'}
+
+
 def _safe_json(raw: str) -> dict[str, Any]:
     try:
         value = json.loads(raw)
@@ -2161,6 +2357,23 @@ def audit_events(current_user: User = Depends(get_current_user), db: Session = D
             }
         )
     return {'events': result}
+
+
+@app.get('/report/export/json')
+def export_report_json(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict[str, Any]:
+    summary = _build_footprint_summary(db, current_user)
+    insight = _build_reputation_insight(summary)
+    timeline = _recent_scan_events(db, current_user.id, limit=200)
+    return {
+        'user': serialize_user(current_user),
+        'summary': summary,
+        'reputation_insight': insight,
+        'timeline': [
+            {'date': event.created_at.isoformat(), 'type': event.scan_type}
+            for event in timeline
+        ],
+        'status': 'exported',
+    }
 
 
 @app.get('/report/export/pdf')

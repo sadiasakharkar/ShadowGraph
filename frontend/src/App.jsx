@@ -16,6 +16,10 @@ import OpsDashboardPage from './pages/OpsDashboardPage';
 import DigitalFootprintSummaryPage from './pages/DigitalFootprintSummaryPage';
 import ReputationInsightPage from './pages/ReputationInsightPage';
 import ProfileDashboardPage from './pages/ProfileDashboardPage';
+import InsightStoryPage from './pages/InsightStoryPage';
+import SkillGrowthPage from './pages/SkillGrowthPage';
+import TimelinePersonaPage from './pages/TimelinePersonaPage';
+import PredictiveEthicsPage from './pages/PredictiveEthicsPage';
 import AppLayout from './components/AppLayout';
 import ProtectedRoute from './components/routes/ProtectedRoute';
 import PublicOnlyRoute from './components/routes/PublicOnlyRoute';
@@ -47,6 +51,10 @@ export default function App() {
             <Route path="reports" element={<ReportsPage />} />
             <Route path="ops" element={<OpsDashboardPage />} />
             <Route path="profile-dashboard" element={<ProfileDashboardPage />} />
+            <Route path="insight-story" element={<InsightStoryPage />} />
+            <Route path="skill-growth" element={<SkillGrowthPage />} />
+            <Route path="timeline-persona" element={<TimelinePersonaPage />} />
+            <Route path="predictive-ethics" element={<PredictiveEthicsPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="*" element={<Navigate to="/app/overview" replace />} />
           </Route>

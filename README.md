@@ -1,137 +1,90 @@
 # ShadowGraph
 
-ShadowGraph is a multi-module digital-footprint intelligence platform for consent-based discovery, exposure monitoring, and risk analysis.
+ShadowGraph is a cinematic, single-scroll digital footprint intelligence platform that helps users discover where they appear online, understand their visibility, and take practical next steps.
 
-It combines a production-oriented FastAPI backend with a React frontend to run and visualize:
+## What This Build Includes
 
-- identity discovery scans,
-- face recognition and anti-spoof analysis,
-- research/publication lookups,
-- breach monitoring,
-- scraping and aggregation pipelines,
-- risk scoring,
-- graph intelligence,
-- report export and operations monitoring.
+- Single-page cinematic landing experience (`/`)
+- Single-scroll authenticated workspace (`/app/overview`) with modules revealed chapter-by-chapter
+- End-to-end frontend + backend integration (React + FastAPI)
+- Real auth, scans, summaries, insights, reports, profile dashboard
 
-## Tagline
+## Core User Modules
 
-Map Your Digital Shadow.
+1. **Photo-Based Presence Search**
+- Upload a photo and optionally add a name/handle.
+- Returns face scan signals, likely profile matches, and public profile previews (where available).
+- API: `POST /upload-face`
 
-## Who This Is For
+2. **Name/Handle Presence Search**
+- Search by username or full name variants across many public platforms.
+- API: `POST /scan-username`
 
-- Security researchers and OSINT practitioners
-- Privacy-focused users auditing their online exposure
-- Engineering teams building digital identity intelligence workflows
+3. **Digital Footprint Summary**
+- Aggregated view of accounts, active platforms, categories, research, and breach counts.
+- API: `GET /digital-footprint-summary`
 
-## Core Capabilities
+4. **Research Paper Detection**
+- Finds publication records with author matching, title, source, year, summary, and links.
+- API: `POST /search-research`
 
-- Authentication and session management
-  - Email/password auth with JWT
-  - Google/GitHub OAuth backend flows
-- Face Intelligence
-  - Image upload and face detection
-  - Face embedding matching against configurable local gallery
-  - Anti-spoof inference (DeepFace when available, heuristic fallback)
-- Username Discovery
-  - Multi-platform live probing (GitHub, LinkedIn, LeetCode, GeeksforGeeks)
-- Research Detection
-  - Live publication lookup via Crossref
-- Breach Monitoring
-  - Live HIBP integration when API key is configured
-- Exposure Scoring
-  - Weighted risk scoring with recommendations
-- Web Scraping & Aggregation Engine
-  - Seed-based crawl, keyword aggregation, email/link extraction
-  - Synchronous scans + asynchronous job queue
-  - Recurring crawler schedules
-- Graph Intelligence
-  - Dynamic graph built from persisted scan history
-- Reporting
-  - Event history view
-  - PDF export from real scan data
-- Settings & Account Lifecycle
-  - Persistent settings
-  - Account deletion and related cleanup
-- Ops Dashboard
-  - Job queue and schedule monitoring
-  - Audit event feed
-  - Readiness checks
+5. **Reputation Insight**
+- Actionable visibility and exposure insights with practical recommendations.
+- API: `GET /reputation-insight`
 
-## Reality Model (Important)
+6. **Profile & Dashboard**
+- User profile, stats, activity overview, top platforms.
+- API: `GET /profile-dashboard`
 
-ShadowGraph is a real scanning pipeline, not a static demo UI. However, outputs are intelligence signals, not guaranteed truth.
+7. **AI Narrative + Privacy Alerts**
+- Story blocks summarizing footprint and warning cards for exposure patterns.
+- APIs: `GET /ai-narrative`, `GET /privacy-alerts`
 
-- Live integrations can return false positives/false negatives.
-- Anti-spoof/fake detection is probabilistic.
-- Face matching quality depends on gallery quality and coverage.
-- Breach checks require valid HIBP API credentials.
+8. **Skill Radar + Networking Opportunities**
+- Skill map, growth gaps, and community/collaboration suggestions.
+- APIs: `GET /skill-radar`, `GET /networking-opportunities`
 
-## Architecture
+9. **Timeline + Persona Score + Achievements**
+- Activity timeline, public persona score, and gamified badges.
+- APIs: `GET /activity-timeline`, `GET /public-persona-score`, `GET /achievements`
+
+10. **Predictive Analytics + Ethical Verification**
+- Forecasted visibility trend and ethical verification checklist.
+- APIs: `GET /predictive-analytics`, `GET /ethical-verification`
+
+11. **Reports**
+- Export PDF and JSON reports.
+- APIs: `GET /report/export/pdf`, `GET /report/export/json`
+
+## Tech Stack
 
 ### Frontend
-
-- React (Vite)
-- React Router
+- React + Vite
 - Tailwind CSS
 - Framer Motion
-- Cytoscape graph rendering
-- Axios API client
+- React Router
+- Axios
 
 ### Backend
-
 - FastAPI
-- SQLite + SQLAlchemy ORM
-- Alembic migrations
-- JWT auth (python-jose)
-- OAuth provider exchange endpoints
-- Redis-backed distributed rate limit (fallback in-memory)
-- Report generation (ReportLab)
+- SQLAlchemy + SQLite
+- JWT auth
+- OAuth (Google/GitHub)
+- ReportLab (PDF export)
 
-### Ops/Delivery
+## Run Locally
 
-- Dockerfiles (frontend/backend)
-- `docker-compose.yml`
-- GitHub Actions CI
-- Kubernetes manifests under `infra/k8s`
-
-## Repository Structure
-
-- `frontend/` — React app
-- `backend/` — FastAPI service
-- `docs/` — operational runbooks
-- `infra/` — deployment manifests
-- `.github/workflows/` — CI workflows
-
-## Quick Start (Local)
-
-### Prerequisites
-
-- Python 3.11+ recommended
-- Node.js 20+
-- Redis (optional but recommended for distributed rate limiting)
-- macOS users for face stack: `cmake`, Xcode build tools
-
-### 1. Backend setup
-
+### 1) Backend
 ```bash
 cd backend
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt -r requirements-dev.txt
 cp .env.example .env
+python3 -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Populate `backend/.env` with real values (see Environment section below), then:
-
-```bash
-alembic upgrade head
-python3 scripts/preflight.py
-python3 scripts/verify_runtime.py
-python3 -m uvicorn app.main:app --reload --port 8000
-```
-
-### 2. Frontend setup
-
+### 2) Frontend
 ```bash
 cd frontend
 npm install
@@ -139,170 +92,89 @@ cp .env.example .env
 npm run dev
 ```
 
-### 3. Open app
+Frontend: `http://localhost:5173`
+Backend: `http://127.0.0.1:8000`
 
-- Frontend: `http://localhost:5173`
-- Backend health: `http://localhost:8000/health`
-- Backend readiness: `http://localhost:8000/ops/readiness`
+## Environment Notes
 
-## Environment Configuration
+Frontend `.env`:
+- `VITE_API_BASE_URL=http://localhost:8000`
+- `VITE_OAUTH_REDIRECT_URI=http://localhost:5173/auth`
 
-Configure `backend/.env`:
+Backend `.env`:
+- `SHADOWGRAPH_SECRET_KEY` (required)
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (optional for Google OAuth)
+- `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` (optional for GitHub OAuth)
+- `HIBP_API_KEY` (optional breach live lookup)
 
-- Required baseline
-  - `SHADOWGRAPH_SECRET_KEY` or `SHADOWGRAPH_JWT_KEYS`
-- Recommended for production-grade behavior
-  - `REDIS_URL`
-  - `CORS_ORIGINS`
-- Optional integrations
-  - `HIBP_API_KEY`
-  - `GOOGLE_CLIENT_ID`
-  - `GOOGLE_CLIENT_SECRET`
-  - `GITHUB_CLIENT_ID`
-  - `GITHUB_CLIENT_SECRET`
+## API Overview
 
-See templates and runbooks:
+### Auth
+- `POST /auth/signup`
+- `POST /auth/login`
+- `GET /auth/me`
+- `GET /auth/oauth/{provider}/start-url`
+- `POST /auth/oauth/{provider}/exchange`
 
-- `backend/.env.example`
-- `docs/SECRETS_TEMPLATE.md`
-- `docs/OAUTH_SETUP.md`
-- `docs/OPS_SETUP.md`
+### Presence + Intelligence
+- `POST /upload-face`
+- `POST /scan-username`
+- `GET /digital-footprint-summary`
+- `GET /reputation-insight`
+- `POST /search-research`
+- `POST /check-breach`
 
-## OAuth Setup (Required for Google/GitHub Login)
+### Narrative + Analytics
+- `GET /ai-narrative`
+- `GET /privacy-alerts`
+- `GET /skill-radar`
+- `GET /networking-opportunities`
+- `GET /activity-timeline`
+- `GET /public-persona-score`
+- `GET /achievements`
+- `GET /predictive-analytics`
+- `GET /ethical-verification`
+- `GET /profile-dashboard`
 
-Register these callback URLs in provider consoles:
-
-- `http://localhost:5173/auth?provider=google`
-- `http://localhost:5173/auth?provider=github`
-
-Full instructions:
-
-- `docs/OAUTH_SETUP.md`
-
-## Face System Setup & Quality
-
-Face matching depends on local gallery entries:
-
-- metadata: `backend/app/data/face_gallery/metadata.json`
-- images: `backend/app/data/face_gallery/`
-
-Quality guide:
-
-- `docs/FACE_QUALITY.md`
-
-## Run with Makefile (Convenience)
-
-From repo root:
-
-```bash
-make backend-install
-make frontend-install
-make backend-preflight
-make backend-runtime
-make backend-migrate
-make backend-run
-```
-
-In another terminal:
-
-```bash
-cd frontend && npm run dev
-```
-
-## API Surface (Selected)
-
-- Auth
-  - `POST /auth/signup`
-  - `POST /auth/login`
-  - `GET /auth/me`
-  - `GET /auth/oauth/{provider}/start-url`
-  - `POST /auth/oauth/{provider}/exchange`
-- Scans
-  - `POST /upload-face`
-  - `POST /scan-username`
-  - `POST /search-research`
-  - `POST /check-breach`
-  - `POST /calculate-risk`
-  - `POST /scrape-aggregate`
-- Jobs/Scheduling
-  - `POST /jobs/scrape`
-  - `GET /jobs/scrape`
-  - `GET /jobs/scrape/{job_id}`
-  - `POST /crawler/schedules`
-  - `GET /crawler/schedules`
-  - `DELETE /crawler/schedules/{schedule_id}`
-- Reports/Graph/Ops
-  - `GET /report/history`
-  - `GET /report/export/pdf`
-  - `GET /graph-data`
-  - `GET /audit/events`
-  - `GET /ops/readiness`
-- User controls
-  - `GET /settings`
-  - `PUT /settings`
-  - `DELETE /account`
+### Reports + Ops
+- `GET /graph-data`
+- `GET /report/history`
+- `GET /report/export/pdf`
+- `GET /report/export/json`
+- `GET /audit/events`
+- `POST /scrape-aggregate`
+- `POST /jobs/scrape`
+- `GET /jobs/scrape`
+- `POST /crawler/schedules`
+- `GET /crawler/schedules`
 
 ## Testing
 
 ### Backend
-
 ```bash
 cd backend
 source .venv/bin/activate
 pytest -q
 ```
 
-### Frontend E2E (Playwright)
-
+### Frontend build
 ```bash
 cd frontend
-npm run test:e2e
+npm run build
 ```
 
-## Deployment
+## Ethical Scope
 
-### Docker Compose (local stack)
+ShadowGraph is designed to analyze **publicly accessible data only**.
 
-```bash
-docker-compose up --build
-```
+- No private account access
+- No credential stuffing or unauthorized scraping
+- No bypassing authentication walls
+- Results depend on platform accessibility, legal policy, and public availability
 
-### CI
+## Deployment Notes
 
-- Workflow: `.github/workflows/ci.yml`
-- Runs backend tests and frontend build on push/PR.
-
-### Kubernetes
-
-Reference manifests:
-
-- `infra/k8s/backend-deployment.yaml`
-- `infra/k8s/frontend-deployment.yaml`
-- `infra/k8s/redis-deployment.yaml`
-
-## Security Notes
-
-- Do not commit real secrets.
-- Rotate exposed OAuth client secrets immediately.
-- Prefer `SHADOWGRAPH_JWT_KEYS` for key rotation.
-- Use Redis in shared/multi-instance environments.
-
-## Troubleshooting
-
-- `python: command not found`
-  - Use `python3` and ensure virtualenv is activated.
-- `alembic: command not found`
-  - Install `requirements-dev.txt` in active venv.
-- `face_recognition`/`dlib` build issues
-  - Install `cmake` + system build tools; prefer Python 3.11 if needed.
-- Port 8000 already in use
-  - Kill existing process: `lsof -ti:8000 | xargs kill -9`
-- Readiness false checks
-  - Inspect `GET /ops/readiness` and fill missing env/provider setup.
-
-## License / Usage
-
-Define your license and permitted usage model before production distribution.
-
-
-![Visitor Count](https://visitor-badge.laobi.icu/badge?page_id=sadiasakharkar.ShadowGraph)
+- Frontend: Vercel / Netlify
+- Backend: Railway / Render / Fly.io
+- Replace SQLite with PostgreSQL for multi-user production environments
+- Use Redis for robust distributed rate limiting in production

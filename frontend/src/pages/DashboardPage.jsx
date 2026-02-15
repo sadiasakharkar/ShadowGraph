@@ -7,6 +7,10 @@ import ResearchPaperPage from './ResearchPaperPage';
 import ReputationInsightPage from './ReputationInsightPage';
 import ProfileDashboardPage from './ProfileDashboardPage';
 import SettingsPage from './SettingsPage';
+import InsightStoryPage from './InsightStoryPage';
+import SkillGrowthPage from './SkillGrowthPage';
+import TimelinePersonaPage from './TimelinePersonaPage';
+import PredictiveEthicsPage from './PredictiveEthicsPage';
 
 const chapters = [
   ['Face Search', '#face-search'],
@@ -14,7 +18,11 @@ const chapters = [
   ['Footprint Summary', '#footprint-summary'],
   ['Research Papers', '#research-papers'],
   ['Reputation Insight', '#reputation-insight'],
-  ['Profile Dashboard', '#profile-dashboard']
+  ['AI Story & Alerts', '#story-alerts'],
+  ['Skills & Networking', '#skills-networking'],
+  ['Timeline & Persona', '#timeline-persona'],
+  ['Predictive & Ethical', '#predictive-ethical'],
+  ['Profile Dashboard', '#profile-dashboard'],
 ];
 
 function Chapter({ id, label, title, text, children }) {
@@ -111,8 +119,44 @@ export default function DashboardPage() {
       </Chapter>
 
       <Chapter
-        id="profile-dashboard"
+        id="story-alerts"
         label="Chapter 06"
+        title="AI Narrative & Privacy Alerts"
+        text="Read a simple story of your digital footprint and see warnings about exposed or sensitive public data."
+      >
+        <InsightStoryPage embedded />
+      </Chapter>
+
+      <Chapter
+        id="skills-networking"
+        label="Chapter 07"
+        title="Skill Radar & Networking Opportunities"
+        text="View your strongest areas, growth gaps, and suggested communities or collaborators to increase your impact."
+      >
+        <SkillGrowthPage embedded />
+      </Chapter>
+
+      <Chapter
+        id="timeline-persona"
+        label="Chapter 08"
+        title="Interactive Timeline, Persona Score & Achievements"
+        text="Follow your contribution timeline, track your persona score, and unlock gamified badges as your public profile grows."
+      >
+        <TimelinePersonaPage embedded />
+      </Chapter>
+
+      <Chapter
+        id="predictive-ethical"
+        label="Chapter 09"
+        title="Predictive Analytics & Ethical Verification"
+        text="See projected visibility trends with practical next steps and verify that all analysis stays within ethical public-data boundaries."
+      >
+        <PredictiveEthicsPage embedded />
+      </Chapter>
+
+      <Chapter
+        id="profile-dashboard"
+        label="Chapter 10"
         title="User Profile & Dashboard"
         text="Manage your profile picture and details, review dynamic charts, and open settings from one unified dashboard."
       >
