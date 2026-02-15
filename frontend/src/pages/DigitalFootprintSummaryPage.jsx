@@ -45,7 +45,7 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
     profiles: Array.isArray(data?.profiles) ? data.profiles : []
   };
   return (
-    <div>
+    <div className="text-text">
       {!embedded ? <PageHeader title="Digital Footprint Summary" subtitle="A simple overview of where you appear online." /> : null}
 
       {error ? <ErrorState message={error} onRetry={load} /> : null}
@@ -58,28 +58,28 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
       {!loading && !error ? (
         <div className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
           <GlassCard className="p-5">
-            <h3 className="text-lg font-semibold">Your online visibility</h3>
+            <h3 className="text-lg font-semibold text-text">Your online visibility</h3>
             {!data ? (
-              <p className="mt-2 text-sm text-muted">
+              <p className="mt-2 text-sm text-text/85">
                 Live summary is loading. You can run Chapter 1 or Chapter 2 scans and this section will update automatically.
               </p>
             ) : null}
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               <div className="rounded-xl border border-white/10 bg-surface/70 p-3">
                 <p className="text-xs uppercase tracking-[0.16em] text-muted">Accounts Found</p>
-                <p className="mt-2 text-3xl font-semibold">{safeData.total_accounts_found}</p>
+                <p className="mt-2 text-3xl font-semibold text-text">{safeData.total_accounts_found}</p>
               </div>
               <div className="rounded-xl border border-white/10 bg-surface/70 p-3">
                 <p className="text-xs uppercase tracking-[0.16em] text-muted">Active Platforms</p>
-                <p className="mt-2 text-3xl font-semibold">{safeData.active_platforms.length}</p>
+                <p className="mt-2 text-3xl font-semibold text-text">{safeData.active_platforms.length}</p>
               </div>
               <div className="rounded-xl border border-white/10 bg-surface/70 p-3">
                 <p className="text-xs uppercase tracking-[0.16em] text-muted">Research Records</p>
-                <p className="mt-2 text-3xl font-semibold">{safeData.research_papers_found}</p>
+                <p className="mt-2 text-3xl font-semibold text-text">{safeData.research_papers_found}</p>
               </div>
               <div className="rounded-xl border border-white/10 bg-surface/70 p-3">
                 <p className="text-xs uppercase tracking-[0.16em] text-muted">Breach Records</p>
-                <p className="mt-2 text-3xl font-semibold">{safeData.breach_records_found}</p>
+                <p className="mt-2 text-3xl font-semibold text-text">{safeData.breach_records_found}</p>
               </div>
             </div>
 
@@ -91,7 +91,7 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
           </GlassCard>
 
           <GlassCard className="p-5">
-            <h3 className="text-lg font-semibold">Platform categories</h3>
+            <h3 className="text-lg font-semibold text-text">Platform categories</h3>
             <div className="mt-4 space-y-3 text-sm">
               {Object.entries(safeData.categories).map(([name, count]) => {
                 const safeCount = Number(count) || 0;
@@ -100,7 +100,7 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
                   <div key={name}>
                     <div className="mb-1 flex items-center justify-between">
                       <span className="text-muted">{name}</span>
-                      <span>{safeCount}</span>
+                      <span className="text-text">{safeCount}</span>
                     </div>
                     <div className="h-2 rounded bg-white/10">
                       <div className="h-2 rounded bg-gradient-to-r from-[#00BFFF] to-[#1ED760]" style={{ width: `${width}%` }} />
@@ -112,14 +112,14 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
           </GlassCard>
 
           <GlassCard className="p-5 xl:col-span-2">
-            <h3 className="text-lg font-semibold">Profiles found</h3>
+            <h3 className="text-lg font-semibold text-text">Profiles found</h3>
             {!safeData.profiles.length ? (
               <EmptyState className="mt-3" message="No personal profiles in summary yet. Run Chapter 1 or Chapter 2 with your own identity." />
             ) : (
               <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {safeData.profiles.map((row, idx) => (
                   <div key={`${row.platform || 'platform'}-${row.profile_url || 'url'}-${idx}`} className="rounded-xl border border-white/10 bg-surface/70 p-3">
-                    <p className="text-sm font-medium">{row.platform}</p>
+                    <p className="text-sm font-medium text-text">{row.platform}</p>
                     <p className="text-xs text-muted">{row.category}</p>
                     <p className="mt-1 text-xs text-muted">@{row.username || 'unknown'}</p>
                     <a href={row.profile_url} className="mt-2 block truncate text-xs text-accent hover:underline">

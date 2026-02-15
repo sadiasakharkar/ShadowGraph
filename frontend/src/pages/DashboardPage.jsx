@@ -29,14 +29,14 @@ function Chapter({ id, label, title, text, children }) {
   return (
     <motion.section
       id={id}
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ y: 16 }}
+      whileInView={{ y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.4 }}
-      className="sg-section px-6 py-12 md:px-10 md:py-14"
+      className="sg-section min-h-[220px] px-6 py-12 text-text md:px-10 md:py-14"
     >
       <p className="sg-kicker">{label}</p>
-      <h2 className="mt-3 text-4xl font-semibold tracking-tight md:text-[48px]">{title}</h2>
+      <h2 className="mt-3 text-4xl font-semibold tracking-tight text-text md:text-[48px]">{title}</h2>
       <p className="mt-4 max-w-4xl text-base leading-8 text-muted md:text-lg">{text}</p>
       <div className="mt-7">{children}</div>
     </motion.section>
