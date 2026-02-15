@@ -1,25 +1,36 @@
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 
 export default function AppLayout() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const location = useLocation();
+  const isOverview = location.pathname === '/app/overview';
 
   return (
     <div className="relative min-h-screen px-4 py-4 text-text md:px-6">
       <div className="particle-layer" />
-      <div className="mx-auto flex max-w-[1600px] gap-5">
-        <Sidebar />
-        <main className="min-w-0 flex-1 pb-8">
-          <Topbar onOpenMenu={() => setMobileNavOpen(true)} />
+      {isOverview ? (
+        <div className="mx-auto max-w-[1400px] pb-8">
+          <div className="sticky top-0 z-30 mb-6 border-b border-white/10 bg-[#121212]/85 py-4 backdrop-blur-xl">
+            <p className="text-center text-sm tracking-[0.28em] text-[#00BFFF]">SHADOWGRAPH</p>
+          </div>
           <Outlet />
-        </main>
-      </div>
+        </div>
+      ) : (
+        <div className="mx-auto flex max-w-[1600px] gap-5">
+          <Sidebar />
+          <main className="min-w-0 flex-1 pb-8">
+            <Topbar onOpenMenu={() => setMobileNavOpen(true)} />
+            <Outlet />
+          </main>
+        </div>
+      )}
 
       <AnimatePresence>
-        {mobileNavOpen ? (
+        {mobileNavOpen && !isOverview ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
