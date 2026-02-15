@@ -32,6 +32,13 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
   useEffect(() => {
     const handler = (event) => {
       const detail = event?.detail || {};
+      if (detail.source === 'username_query_changed') {
+        setLiveSearch({
+          query: detail.query || '',
+          rows: []
+        });
+        return;
+      }
       if (detail.source === 'username_scan') {
         setLiveSearch({
           query: detail.query || '',
@@ -53,17 +60,19 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
     profiles: Array.isArray(data?.profiles) ? data.profiles : []
   };
   const liveRows = Array.isArray(liveSearch.rows) ? liveSearch.rows : [];
-  const effectiveProfiles = liveRows.length
-    ? liveRows.map((row) => ({
-        platform: row.platform,
-        category: 'Search Result',
-        username: row.username,
-        profile_url: row.link
-      }))
-    : safeData.profiles;
-  const effectiveActivePlatforms = liveRows.length
-    ? [...new Set(liveRows.map((row) => row.platform).filter(Boolean))]
-    : safeData.active_platforms;
+  const searchedProfiles = liveRows.map((row) => ({
+    platform: row.platform,
+    category: 'Search Result',
+    username: row.username,
+    profile_url: row.link
+  }));
+  const searchedActivePlatforms = [...new Set(liveRows.map((row) => row.platform).filter(Boolean))];
+
+  const effectiveProfiles = embedded ? searchedProfiles : (liveRows.length ? searchedProfiles : safeData.profiles);
+  const effectiveActivePlatforms = embedded ? searchedActivePlatforms : (liveRows.length ? searchedActivePlatforms : safeData.active_platforms);
+  const effectiveTotalAccounts = embedded ? effectiveProfiles.length : (liveRows.length ? searchedProfiles.length : safeData.total_accounts_found);
+  const showSearchWaiting = embedded && !!liveSearch.query && !liveRows.length && !loading;
+  const showSearchPrompt = embedded && !liveSearch.query && !loading;
 
   return (
     <div className="text-text">
@@ -88,7 +97,7 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               <div className="rounded-xl border border-white/10 bg-surface/70 p-3">
                 <p className="text-xs uppercase tracking-[0.16em] text-muted">Accounts Found</p>
-                <p className="mt-2 text-3xl font-semibold text-text">{safeData.total_accounts_found}</p>
+                <p className="mt-2 text-3xl font-semibold text-text">{effectiveTotalAccounts}</p>
               </div>
               <div className="rounded-xl border border-white/10 bg-surface/70 p-3">
                 <p className="text-xs uppercase tracking-[0.16em] text-muted">Active Platforms</p>
@@ -96,11 +105,11 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
               </div>
               <div className="rounded-xl border border-white/10 bg-surface/70 p-3">
                 <p className="text-xs uppercase tracking-[0.16em] text-muted">Research Records</p>
-                <p className="mt-2 text-3xl font-semibold text-text">{safeData.research_papers_found}</p>
+                <p className="mt-2 text-3xl font-semibold text-text">{embedded ? 0 : safeData.research_papers_found}</p>
               </div>
               <div className="rounded-xl border border-white/10 bg-surface/70 p-3">
                 <p className="text-xs uppercase tracking-[0.16em] text-muted">Breach Records</p>
-                <p className="mt-2 text-3xl font-semibold text-text">{safeData.breach_records_found}</p>
+                <p className="mt-2 text-3xl font-semibold text-text">{embedded ? 0 : safeData.breach_records_found}</p>
               </div>
             </div>
 
@@ -110,7 +119,7 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
               ))}
             </div>
             {liveSearch.query ? (
-              <p className="mt-3 text-xs text-muted">Live from Chapter 2: {liveSearch.query}</p>
+              <p className="mt-3 text-xs text-muted">Showing results for: {liveSearch.query}</p>
             ) : null}
           </GlassCard>
 
@@ -137,9 +146,16 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
 
           <GlassCard className="p-5 xl:col-span-2">
             <h3 className="text-lg font-semibold text-text">Profiles found</h3>
-            {!effectiveProfiles.length ? (
-              <EmptyState className="mt-3" message="No personal profiles in summary yet. Run Chapter 1 or Chapter 2 with your own identity." />
-            ) : (
+            {showSearchPrompt ? (
+              <EmptyState className="mt-3" message="Search a name in Chapter 2 to see Chapter 3 results for that name." />
+            ) : null}
+            {showSearchWaiting ? (
+              <EmptyState className="mt-3" message={`No reachable public profiles found for "${liveSearch.query}". Try another variation.`} />
+            ) : null}
+            {!showSearchPrompt && !showSearchWaiting && !effectiveProfiles.length ? (
+              <EmptyState className="mt-3" message="No profiles available yet." />
+            ) : null}
+            {effectiveProfiles.length ? (
               <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {effectiveProfiles.map((row, idx) => (
                   <div key={`${row.platform || 'platform'}-${row.profile_url || 'url'}-${idx}`} className="rounded-xl border border-white/10 bg-surface/70 p-3">
@@ -152,7 +168,7 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
                   </div>
                 ))}
               </div>
-            )}
+            ) : null}
           </GlassCard>
         </div>
       ) : null}
