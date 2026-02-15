@@ -7,7 +7,7 @@ import { checkBreach } from '../services/endpoints';
 import { getDisplayError } from '../services/apiErrors';
 import { useToast } from '../context/ToastContext';
 
-export default function BreachMonitorPage() {
+export default function BreachMonitorPage({ embedded = false }) {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState([]);
@@ -38,7 +38,9 @@ export default function BreachMonitorPage() {
 
   return (
     <div>
-      <PageHeader title="Breach Monitor" subtitle="Have I Been Pwned-compatible breach check workflow (mocked integration layer)." />
+      {!embedded ? (
+        <PageHeader title="Breach Monitor" subtitle="Have I Been Pwned-compatible breach check workflow (mocked integration layer)." />
+      ) : null}
 
       <GlassCard className="p-5 md:p-6">
         <div className="flex flex-col gap-3 md:flex-row">

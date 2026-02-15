@@ -17,7 +17,7 @@ const defaultSettings = {
   light_theme: false
 };
 
-export default function SettingsPage() {
+export default function SettingsPage({ embedded = false }) {
   const [settings, setSettings] = useState(defaultSettings);
   const [loading, setLoading] = useState(false);
   const [savingKey, setSavingKey] = useState('');
@@ -111,7 +111,9 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <PageHeader title="Settings" subtitle="Manage consent, privacy controls, profile customization, account actions, and report export." />
+      {!embedded ? (
+        <PageHeader title="Settings" subtitle="Manage consent, privacy controls, profile customization, account actions, and report export." />
+      ) : null}
 
       {error ? <ErrorState message={error} onRetry={load} /> : null}
       {loading ? (

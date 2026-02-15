@@ -14,7 +14,7 @@ const defaultNodeDescriptions = {
   'Breach Event': 'Historic data breach relation.'
 };
 
-export default function GraphVisualizationPage() {
+export default function GraphVisualizationPage({ embedded = false }) {
   const [elements, setElements] = useState({ nodes: [], edges: [] });
   const [summary, setSummary] = useState({ nodes: 0, edges: 0, events_ingested: 0 });
   const [error, setError] = useState('');
@@ -40,7 +40,7 @@ export default function GraphVisualizationPage() {
 
   return (
     <div>
-      <PageHeader title="Graph Visualization" subtitle="Interactive relation graph generated from your real scan history." />
+      {!embedded ? <PageHeader title="Graph Visualization" subtitle="Interactive relation graph generated from your real scan history." /> : null}
 
       {error ? <ErrorState message={error} onRetry={loadGraph} /> : null}
 

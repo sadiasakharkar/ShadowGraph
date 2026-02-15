@@ -7,7 +7,7 @@ import { useToast } from '../context/ToastContext';
 import { scrapeAggregate } from '../services/endpoints';
 import { getDisplayError } from '../services/apiErrors';
 
-export default function ScrapeAggregationPage() {
+export default function ScrapeAggregationPage({ embedded = false }) {
   const [seedUrlsInput, setSeedUrlsInput] = useState('https://example.com');
   const [keywordsInput, setKeywordsInput] = useState('security, breach, privacy');
   const [loading, setLoading] = useState(false);
@@ -47,10 +47,12 @@ export default function ScrapeAggregationPage() {
 
   return (
     <div>
-      <PageHeader
-        title="Web Scraping & Aggregation"
-        subtitle="Crawl seed URLs, extract signals, and aggregate keywords/emails across discovered pages."
-      />
+      {!embedded ? (
+        <PageHeader
+          title="Web Scraping & Aggregation"
+          subtitle="Crawl seed URLs, extract signals, and aggregate keywords/emails across discovered pages."
+        />
+      ) : null}
 
       <GlassCard className="p-5 md:p-6">
         <div className="grid gap-3 xl:grid-cols-2">

@@ -7,7 +7,7 @@ import { searchResearch } from '../services/endpoints';
 import { getDisplayError } from '../services/apiErrors';
 import { useToast } from '../context/ToastContext';
 
-export default function ResearchPaperPage() {
+export default function ResearchPaperPage({ embedded = false }) {
   const [name, setName] = useState('');
   const [institution, setInstitution] = useState('');
   const [loading, setLoading] = useState(false);
@@ -39,7 +39,9 @@ export default function ResearchPaperPage() {
 
   return (
     <div>
-      <PageHeader title="Research Paper Detection" subtitle="Find papers by full name, swapped name order, only name, only institution, or both together." />
+      {!embedded ? (
+        <PageHeader title="Research Paper Detection" subtitle="Find papers by full name, swapped name order, only name, only institution, or both together." />
+      ) : null}
 
       <GlassCard className="p-5 md:p-6">
         <p className="mb-3 text-sm text-muted">

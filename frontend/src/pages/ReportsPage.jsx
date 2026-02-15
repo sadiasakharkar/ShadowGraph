@@ -7,7 +7,7 @@ import { useToast } from '../context/ToastContext';
 import { exportPdfReport, getReportHistory } from '../services/endpoints';
 import { getDisplayError } from '../services/apiErrors';
 
-export default function ReportsPage() {
+export default function ReportsPage({ embedded = false }) {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -53,15 +53,25 @@ export default function ReportsPage() {
 
   return (
     <div>
-      <PageHeader
-        title="Reports"
-        subtitle="Export PDF reports and review recent intelligence event history."
-        actions={
+      {!embedded ? (
+        <PageHeader
+          title="Reports"
+          subtitle="Export PDF reports and review recent intelligence event history."
+          actions={
+            <button onClick={onExport} disabled={exporting} className="sg-button-primary px-4 py-2 text-sm">
+              {exporting ? 'Exporting...' : 'Export PDF'}
+            </button>
+          }
+        />
+      ) : null}
+
+      {embedded ? (
+        <div className="mb-4 flex justify-end">
           <button onClick={onExport} disabled={exporting} className="sg-button-primary px-4 py-2 text-sm">
-            {exporting ? 'Exporting...' : 'Export PDF'}
+            {exporting ? 'Exporting...' : 'Download PDF Report'}
           </button>
-        }
-      />
+        </div>
+      ) : null}
 
       {error ? <ErrorState message={error} onRetry={load} /> : null}
       {loading ? (

@@ -8,7 +8,7 @@ import { scanUsername } from '../services/endpoints';
 import { getDisplayError } from '../services/apiErrors';
 import { useToast } from '../context/ToastContext';
 
-export default function UsernameDiscoveryPage() {
+export default function UsernameDiscoveryPage({ embedded = false }) {
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -48,7 +48,9 @@ export default function UsernameDiscoveryPage() {
 
   return (
     <div>
-      <PageHeader title="Username Discovery" subtitle="Search by username or full name. We also try variants like dots, underscores, and swapped order." />
+      {!embedded ? (
+        <PageHeader title="Username Discovery" subtitle="Search by username or full name. We also try variants like dots, underscores, and swapped order." />
+      ) : null}
 
       <GlassCard className="p-5 md:p-6">
         <div className="flex flex-col gap-3 md:flex-row">

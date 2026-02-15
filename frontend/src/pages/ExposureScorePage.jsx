@@ -9,7 +9,7 @@ import { calculateRisk } from '../services/endpoints';
 import { getDisplayError } from '../services/apiErrors';
 import { useToast } from '../context/ToastContext';
 
-export default function ExposureScorePage() {
+export default function ExposureScorePage({ embedded = false }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const { error: showError } = useToast();
@@ -32,7 +32,9 @@ export default function ExposureScorePage() {
 
   return (
     <div>
-      <PageHeader title="Exposure Score" subtitle="Consolidated 0-100 risk intelligence with category-level diagnostics and mitigation guidance." />
+      {!embedded ? (
+        <PageHeader title="Exposure Score" subtitle="Consolidated 0-100 risk intelligence with category-level diagnostics and mitigation guidance." />
+      ) : null}
 
       {error ? <ErrorState message={error} onRetry={loadRisk} /> : null}
 

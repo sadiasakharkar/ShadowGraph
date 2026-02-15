@@ -8,7 +8,7 @@ import { scanFace } from '../services/endpoints';
 import { getDisplayError } from '../services/apiErrors';
 import { useToast } from '../context/ToastContext';
 
-export default function FaceScanPage({ fakeMode = false }) {
+export default function FaceScanPage({ fakeMode = false, embedded = false }) {
   const [preview, setPreview] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -39,14 +39,16 @@ export default function FaceScanPage({ fakeMode = false }) {
 
   return (
     <div>
-      <PageHeader
-        title={fakeMode ? 'Fake Detection' : 'Face Scan'}
-        subtitle={
-          fakeMode
-            ? 'Assess synthetic media probability and manipulation signals.'
-            : 'Capture or upload facial input to correlate profiles with confidence scoring.'
-        }
-      />
+      {!embedded ? (
+        <PageHeader
+          title={fakeMode ? 'Fake Detection' : 'Face Scan'}
+          subtitle={
+            fakeMode
+              ? 'Assess synthetic media probability and manipulation signals.'
+              : 'Capture or upload facial input to correlate profiles with confidence scoring.'
+          }
+        />
+      ) : null}
 
       <div className="grid gap-4 xl:grid-cols-[1.15fr_1fr]">
         <GlassCard className="p-5 md:p-6">
