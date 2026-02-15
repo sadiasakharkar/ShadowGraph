@@ -36,6 +36,13 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
     breach_records_found: Number(data?.breach_records_found) || 0,
     profiles: Array.isArray(data?.profiles) ? data.profiles : []
   };
+  const hasAnySummaryData =
+    safeData.total_accounts_found > 0
+    || safeData.active_platforms.length > 0
+    || Object.keys(safeData.categories).length > 0
+    || safeData.profiles.length > 0
+    || safeData.research_papers_found > 0
+    || safeData.breach_records_found > 0;
 
   return (
     <div>
@@ -48,11 +55,11 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
         </div>
       ) : null}
 
-      {!loading && !error && !data ? (
+      {!loading && !error && !hasAnySummaryData ? (
         <EmptyState message="Your footprint summary will appear here after at least one successful scan." />
       ) : null}
 
-      {!loading && !error && data ? (
+      {!loading && !error && hasAnySummaryData ? (
         <div className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
           <GlassCard className="p-5">
             <h3 className="text-lg font-semibold">Your online visibility</h3>
