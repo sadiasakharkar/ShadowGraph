@@ -1104,10 +1104,15 @@ async def upload_face(
 
     search_hint = (search_text or '').strip()
     online_presence = await _build_online_presence(query_encodings, search_hint) if search_hint else []
+    query_owner = 'self'
+    if search_hint:
+        query_owner = 'self' if _is_self_query_value(search_hint, current_user) else 'external'
 
     payload = {
         'matched_profiles': matched_profiles,
         'online_presence': online_presence,
+        'search_text': search_hint,
+        'query_owner': query_owner,
         'faces_detected': max(len(cv_faces), len(query_encodings)),
         'fake_detection_confidence': fake['fake_score'],
         'fake_detection_label': fake['label'],
@@ -1312,9 +1317,11 @@ async def scan_username(
 
     duration_ms = int((time.perf_counter() - started) * 1000)
     found_count = len(found_results)
+    query_owner = 'self' if _is_self_query_value(payload.username, current_user) else 'external'
 
     response_payload = {
         'username': payload.username,
+        'query_owner': query_owner,
         'username_variants_checked': variants,
         'results': found_results,
         'summary': {
@@ -1370,6 +1377,53 @@ def _name_variants(full_name: str) -> list[str]:
 def _tokenize_name(value: str) -> list[str]:
     cleaned = re.sub(r'[^a-z\s]', ' ', (value or '').lower())
     return [part for part in cleaned.split() if part]
+
+
+def _user_identity_markers(user: User) -> dict[str, Any]:
+    email_local = (user.email or '').split('@')[0].lower()
+    full_name = (user.name or '').strip().lower()
+    reversed_name = ' '.join(reversed(full_name.split()))
+
+    def _norm(value: str) -> str:
+        return re.sub(r'[^a-z0-9]', '', value or '')
+
+    full_norm = _norm(full_name)
+    email_norm = _norm(email_local)
+    reversed_norm = _norm(reversed_name)
+    name_tokens = [re.sub(r'[^a-z0-9]', '', token.lower()) for token in full_name.split() if token.strip()]
+    name_tokens = [token for token in name_tokens if token]
+    return {
+        'exact_set': {value for value in (full_norm, email_norm, reversed_norm) if value},
+        'name_tokens': name_tokens,
+    }
+
+
+def _is_self_query_value(value: str, user: User) -> bool:
+    q_norm = re.sub(r'[^a-z0-9]', '', (value or '').strip().lower())
+    if not q_norm:
+        return False
+    markers = _user_identity_markers(user)
+    if q_norm in markers['exact_set']:
+        return True
+
+    query_tokens = set(_tokenize_name(value))
+    reference_tokens = set(_tokenize_name(f"{user.name} {(user.email or '').split('@')[0]}"))
+    return len(query_tokens & reference_tokens) >= 2
+
+
+def _is_self_profile_username(username: str, user: User) -> bool:
+    u_norm = re.sub(r'[^a-z0-9]', '', (username or '').strip().lower())
+    if not u_norm:
+        return False
+    markers = _user_identity_markers(user)
+    if u_norm in markers['exact_set']:
+        return True
+    if len(markers['name_tokens']) >= 2:
+        first = markers['name_tokens'][0]
+        last = markers['name_tokens'][-1]
+        if first and last and first in u_norm and last in u_norm:
+            return True
+    return False
 
 
 def _name_profiles(variants: list[str]) -> list[dict[str, Any]]:
@@ -1976,21 +2030,11 @@ def _build_footprint_summary(db: Session, current_user: User) -> dict[str, Any]:
         payload = _safe_json(event.payload_json)
         if event.scan_type == 'username_scan':
             queried_value = str(payload.get('username', '')).strip()
-            if queried_value:
-                q_norm = re.sub(r'[^a-z0-9]', '', queried_value.lower())
-                email_local = current_user.email.split('@')[0].lower()
-                name_norm = re.sub(r'[^a-z0-9]', '', (current_user.name or '').lower())
-                email_norm = re.sub(r'[^a-z0-9]', '', email_local)
-                reversed_name = ' '.join(reversed((current_user.name or '').split()))
-                reversed_name_norm = re.sub(r'[^a-z0-9]', '', reversed_name.lower())
-                token_overlap = set(_tokenize_name(queried_value)) & set(_tokenize_name(f'{current_user.name} {email_local}'))
-                is_self_query = (
-                    q_norm in {name_norm, email_norm, reversed_name_norm}
-                    or (q_norm and (q_norm in name_norm or q_norm in email_norm))
-                    or len(token_overlap) >= 2
-                )
+            owner = str(payload.get('query_owner', '')).strip().lower()
+            if owner:
+                is_self_query = owner == 'self'
             else:
-                is_self_query = False
+                is_self_query = _is_self_query_value(queried_value, current_user)
             if not is_self_query:
                 continue
             for row in payload.get('results', []):
@@ -2008,7 +2052,12 @@ def _build_footprint_summary(db: Session, current_user: User) -> dict[str, Any]:
                         'profile_url': profile_url,
                     }
         elif event.scan_type == 'face_scan':
+            owner = str(payload.get('query_owner', '')).strip().lower()
+            if owner and owner != 'self':
+                continue
             for row in payload.get('online_presence', []):
+                if not owner and not _is_self_profile_username(str(row.get('username', '')), current_user):
+                    continue
                 platform = row.get('platform', 'Unknown')
                 profile_url = row.get('profile_url', '')
                 key = f'{platform}:{profile_url}'
