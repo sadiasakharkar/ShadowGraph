@@ -1281,80 +1281,110 @@ async def scan_username(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict[str, Any]:
-    variants = _username_variants(payload.username)
-    if not variants:
-        raise HTTPException(status_code=422, detail='Could not generate valid username variants from input')
-
     started = time.perf_counter()
-    async with httpx.AsyncClient(
-        timeout=8,
-        follow_redirects=True,
-        headers={
-            'User-Agent': 'Mozilla/5.0 (compatible; ShadowGraph/0.3; +https://shadowgraph.local)'
-        },
-    ) as client:
-        probes = [
-            _probe_platform(client, platform, variant)
-            for platform in PLATFORMS
-            for variant in variants
-        ]
-        probed = await asyncio.gather(*probes)
-
-        name_search_rows: list[dict[str, Any]] = []
-        if ' ' in payload.username.strip():
-            name_search_rows = await _probe_name_search_links(client, payload.username)
-
-    # Pick best candidate per platform: Found > Not Found > Unknown, then lower latency.
-    score = {'Found': 3, 'Not Found': 2, 'Rate Limited': 1, 'Unknown': 0}
-    grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    for row in probed:
-        grouped[row['platform']].append(row)
-
-    results: list[dict[str, Any]] = []
-    for platform in PLATFORMS:
-        candidates = grouped.get(platform['name'], [])
-        if not candidates:
-            continue
-        candidates.sort(key=lambda r: (score.get(r['status'], 0), -(r['response_ms'] if r['response_ms'] >= 0 else 999999)), reverse=True)
-        best = candidates[0]
-        results.append(best)
-
-    # Return only ethically reachable and confirmed profile links.
-    found_results = [
-        row
-        for row in results
-        if row.get('status') == 'Found'
-        and isinstance(row.get('profile_url'), str)
-        and row.get('profile_url', '').startswith(('http://', 'https://'))
-    ]
-
-    if name_search_rows:
-        seen_links = {row['profile_url'] for row in found_results if row.get('profile_url')}
-        for row in name_search_rows:
-            if row['profile_url'] in seen_links:
-                continue
-            found_results.append(row)
-            seen_links.add(row['profile_url'])
-
-    duration_ms = int((time.perf_counter() - started) * 1000)
-    found_count = len(found_results)
     query_owner = 'self' if _is_self_query_value(payload.username, current_user) else 'external'
+    raw_query = (payload.username or '').strip()
 
-    response_payload = {
-        'username': payload.username,
-        'query_owner': query_owner,
-        'username_variants_checked': variants,
-        'results': found_results,
-        'summary': {
-            'total_platforms': len(PLATFORMS),
-            'found': found_count,
-            'duration_ms': duration_ms,
-        },
-        'status': 'live-scan',
-        'source_policy': 'Public profile URLs only. No private or gated data is accessed.',
-    }
-    store_scan_event(db, current_user, 'username_scan', response_payload)
-    return response_payload
+    try:
+        variants = _username_variants(payload.username)
+        name_search_rows: list[dict[str, Any]] = []
+        found_results: list[dict[str, Any]] = []
+
+        async with httpx.AsyncClient(
+            timeout=8,
+            follow_redirects=True,
+            headers={
+                'User-Agent': 'Mozilla/5.0 (compatible; ShadowGraph/0.3; +https://shadowgraph.local)'
+            },
+        ) as client:
+            if variants:
+                probes = [
+                    _probe_platform(client, platform, variant)
+                    for platform in PLATFORMS
+                    for variant in variants
+                ]
+                probed = await asyncio.gather(*probes)
+
+                # Pick best candidate per platform: Found > Not Found > Unknown, then lower latency.
+                score = {'Found': 3, 'Not Found': 2, 'Rate Limited': 1, 'Unknown': 0}
+                grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
+                for row in probed:
+                    grouped[row['platform']].append(row)
+
+                results: list[dict[str, Any]] = []
+                for platform in PLATFORMS:
+                    candidates = grouped.get(platform['name'], [])
+                    if not candidates:
+                        continue
+                    candidates.sort(key=lambda r: (score.get(r['status'], 0), -(r['response_ms'] if r['response_ms'] >= 0 else 999999)), reverse=True)
+                    best = candidates[0]
+                    results.append(best)
+
+                found_results = [
+                    row
+                    for row in results
+                    if row.get('status') == 'Found'
+                    and isinstance(row.get('profile_url'), str)
+                    and row.get('profile_url', '').startswith(('http://', 'https://'))
+                ]
+
+            # Full-name or invalid-variant inputs still get stable public search links.
+            if ' ' in raw_query or not variants:
+                name_search_rows = await _probe_name_search_links(client, payload.username)
+
+        if name_search_rows:
+            seen_links = {row['profile_url'] for row in found_results if row.get('profile_url')}
+            for row in name_search_rows:
+                if row['profile_url'] in seen_links:
+                    continue
+                found_results.append(row)
+                seen_links.add(row['profile_url'])
+
+        duration_ms = int((time.perf_counter() - started) * 1000)
+        response_payload = {
+            'username': payload.username,
+            'query_owner': query_owner,
+            'username_variants_checked': variants,
+            'results': found_results,
+            'summary': {
+                'total_platforms': len(PLATFORMS),
+                'found': len(found_results),
+                'duration_ms': duration_ms,
+            },
+            'status': 'live-scan',
+            'source_policy': 'Public profile URLs only. No private or gated data is accessed.',
+        }
+        store_scan_event(db, current_user, 'username_scan', response_payload)
+        return response_payload
+    except Exception as exc:
+        logger.warning('username scan fallback due to unexpected error: %s', exc)
+        fallback_results = [
+            {
+                'platform': row['name'],
+                'username': raw_query or payload.username,
+                'status': 'Found',
+                'profile_url': row['query_url_template'].format(query=quote_plus(raw_query or payload.username)),
+                'http_status': 200,
+                'response_ms': -1,
+                'match_type': 'fallback_search',
+            }
+            for row in NAME_SEARCH_PLATFORMS
+        ]
+        response_payload = {
+            'username': payload.username,
+            'query_owner': query_owner,
+            'username_variants_checked': _username_variants(payload.username),
+            'results': fallback_results,
+            'summary': {
+                'total_platforms': len(NAME_SEARCH_PLATFORMS),
+                'found': len(fallback_results),
+                'duration_ms': int((time.perf_counter() - started) * 1000),
+            },
+            'status': 'fallback-search',
+            'source_policy': 'Public search URLs only. No private or gated data is accessed.',
+        }
+        store_scan_event(db, current_user, 'username_scan', response_payload)
+        return response_payload
 
 
 def _author_names(authors: list[dict[str, Any]]) -> str:
