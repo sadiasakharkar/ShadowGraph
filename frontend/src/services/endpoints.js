@@ -152,7 +152,7 @@ export async function getEthicalVerification() {
 export async function scanUsername(username) {
   try {
     const { data } = await apiClient.post('/scan-username', { username });
-    const rows = data.results || [];
+    const rows = Array.isArray(data?.results) ? data.results : [];
 
     return rows
       .filter((row) => row?.status === 'Found' && typeof row?.profile_url === 'string' && row.profile_url.startsWith('http'))

@@ -1183,6 +1183,16 @@ async def _probe_platform(client: httpx.AsyncClient, platform: dict[str, str], u
             'response_ms': -1,
             'error': 'network_error',
         }
+    except Exception:
+        return {
+            'platform': platform['name'],
+            'username': username,
+            'status': 'Unknown',
+            'profile_url': url,
+            'http_status': 0,
+            'response_ms': -1,
+            'error': 'network_error',
+        }
 
 
 async def _probe_name_search_links(client: httpx.AsyncClient, raw_name: str) -> list[dict[str, Any]]:
@@ -1210,6 +1220,8 @@ async def _probe_name_search_links(client: httpx.AsyncClient, raw_name: str) -> 
                 }
             )
         except httpx.HTTPError:
+            continue
+        except Exception:
             continue
     return rows
 
