@@ -29,6 +29,9 @@ export default function FaceScanPage({ fakeMode = false, embedded = false }) {
       const data = await scanFace(selectedFile, searchText);
       setResult(data);
       success(fakeMode ? 'Fake detection complete' : 'Face scan complete');
+      if (!fakeMode && typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('shadowgraph:data-updated', { detail: { source: 'face_scan' } }));
+      }
     } catch (err) {
       const message = getDisplayError(err, 'Failed to complete scan.');
       setError(message);

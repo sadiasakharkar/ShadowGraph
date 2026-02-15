@@ -28,6 +28,14 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
     load();
   }, []);
 
+  useEffect(() => {
+    const handler = () => {
+      load();
+    };
+    window.addEventListener('shadowgraph:data-updated', handler);
+    return () => window.removeEventListener('shadowgraph:data-updated', handler);
+  }, []);
+
   const safeData = {
     total_accounts_found: Number(data?.total_accounts_found) || 0,
     active_platforms: Array.isArray(data?.active_platforms) ? data.active_platforms : [],

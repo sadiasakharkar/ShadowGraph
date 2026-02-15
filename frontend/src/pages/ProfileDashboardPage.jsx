@@ -28,6 +28,14 @@ export default function ProfileDashboardPage({ embedded = false }) {
     load();
   }, []);
 
+  useEffect(() => {
+    const handler = () => {
+      load();
+    };
+    window.addEventListener('shadowgraph:data-updated', handler);
+    return () => window.removeEventListener('shadowgraph:data-updated', handler);
+  }, []);
+
   const safeProfile = {
     name: data?.profile?.name || 'User',
     email: data?.profile?.email || '',
