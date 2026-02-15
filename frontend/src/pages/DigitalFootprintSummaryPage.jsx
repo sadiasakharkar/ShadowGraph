@@ -44,14 +44,6 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
     breach_records_found: Number(data?.breach_records_found) || 0,
     profiles: Array.isArray(data?.profiles) ? data.profiles : []
   };
-  const hasAnySummaryData =
-    safeData.total_accounts_found > 0
-    || safeData.active_platforms.length > 0
-    || Object.keys(safeData.categories).length > 0
-    || safeData.profiles.length > 0
-    || safeData.research_papers_found > 0
-    || safeData.breach_records_found > 0;
-
   return (
     <div>
       {!embedded ? <PageHeader title="Digital Footprint Summary" subtitle="A simple overview of where you appear online." /> : null}
@@ -63,14 +55,15 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
         </div>
       ) : null}
 
-      {!loading && !error && !hasAnySummaryData ? (
-        <EmptyState message="Your footprint summary will appear here after at least one successful scan." />
-      ) : null}
-
-      {!loading && !error && hasAnySummaryData ? (
+      {!loading && !error ? (
         <div className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
           <GlassCard className="p-5">
             <h3 className="text-lg font-semibold">Your online visibility</h3>
+            {!data ? (
+              <p className="mt-2 text-sm text-muted">
+                Live summary is loading. You can run Chapter 1 or Chapter 2 scans and this section will update automatically.
+              </p>
+            ) : null}
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               <div className="rounded-xl border border-white/10 bg-surface/70 p-3">
                 <p className="text-xs uppercase tracking-[0.16em] text-muted">Accounts Found</p>
@@ -121,7 +114,7 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
           <GlassCard className="p-5 xl:col-span-2">
             <h3 className="text-lg font-semibold">Profiles found</h3>
             {!safeData.profiles.length ? (
-              <EmptyState className="mt-3" message="Run Username Engine or Face Recognition to build your profile list." />
+              <EmptyState className="mt-3" message="No personal profiles in summary yet. Run Chapter 1 or Chapter 2 with your own identity." />
             ) : (
               <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {safeData.profiles.map((row, idx) => (
