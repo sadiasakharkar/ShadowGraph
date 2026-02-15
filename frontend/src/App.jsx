@@ -13,6 +13,9 @@ import GraphVisualizationPage from './pages/GraphVisualizationPage';
 import SettingsPage from './pages/SettingsPage';
 import ReportsPage from './pages/ReportsPage';
 import OpsDashboardPage from './pages/OpsDashboardPage';
+import DigitalFootprintSummaryPage from './pages/DigitalFootprintSummaryPage';
+import ReputationInsightPage from './pages/ReputationInsightPage';
+import ProfileDashboardPage from './pages/ProfileDashboardPage';
 import AppLayout from './components/AppLayout';
 import ProtectedRoute from './components/routes/ProtectedRoute';
 import PublicOnlyRoute from './components/routes/PublicOnlyRoute';
@@ -35,12 +38,15 @@ export default function App() {
             <Route path="fake-detection" element={<FaceScanPage fakeMode />} />
             <Route path="username-scan" element={<UsernameDiscoveryPage />} />
             <Route path="scrape" element={<ScrapeAggregationPage />} />
+            <Route path="footprint-summary" element={<DigitalFootprintSummaryPage />} />
             <Route path="research" element={<ResearchPaperPage />} />
             <Route path="breach" element={<BreachMonitorPage />} />
             <Route path="exposure-score" element={<ExposureScorePage />} />
+            <Route path="reputation-insight" element={<ReputationInsightPage />} />
             <Route path="graph" element={<GraphVisualizationPage />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="ops" element={<OpsDashboardPage />} />
+            <Route path="profile-dashboard" element={<ProfileDashboardPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="*" element={<Navigate to="/app/overview" replace />} />
           </Route>

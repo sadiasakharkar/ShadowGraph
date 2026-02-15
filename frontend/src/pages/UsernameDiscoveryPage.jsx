@@ -66,7 +66,7 @@ export default function UsernameDiscoveryPage({ embedded = false }) {
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
-          {['GitHub', 'LinkedIn', 'LeetCode', 'GeeksforGeeks'].map((platform) => (
+          {['GitHub', 'LinkedIn', 'LeetCode', 'Stack Overflow', 'X', 'Medium', 'IEEE'].map((platform) => (
             <span key={platform} className="sg-chip">
               {platform}
             </span>

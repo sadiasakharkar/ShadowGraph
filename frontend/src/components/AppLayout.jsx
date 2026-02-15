@@ -15,7 +15,13 @@ export default function AppLayout() {
       {isOverview ? (
         <div className="mx-auto max-w-[1400px] pb-8">
           <div className="sticky top-0 z-30 mb-6 border-b border-white/10 bg-[#121212]/85 py-4 backdrop-blur-xl">
-            <p className="text-center text-sm tracking-[0.28em] text-[#00BFFF]">SHADOWGRAPH</p>
+            <div className="flex items-center justify-between gap-3">
+              <div className="w-32" />
+              <p className="text-center text-sm tracking-[0.28em] text-[#00BFFF]">SHADOWGRAPH</p>
+              <a href="#profile-dashboard" className="sg-button-secondary px-3 py-2 text-xs">
+                Profile Dashboard
+              </a>
+            </div>
           </div>
           <Outlet />
         </div>

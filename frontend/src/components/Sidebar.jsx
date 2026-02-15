@@ -3,17 +3,16 @@ import { useAuth } from '../context/AuthContext';
 
 const links = [
   ['One-Page Workspace', '/app/overview', '01'],
-  ['Face Match', '/app/face-scan', '02'],
-  ['Fake Check', '/app/fake-detection', '03'],
-  ['Username Search', '/app/username-scan', '04'],
-  ['Web Scan', '/app/scrape', '05'],
-  ['Publication Search', '/app/research', '06'],
-  ['Risk Score', '/app/exposure-score', '07'],
+  ['Face Search', '/app/face-scan', '02'],
+  ['Username Engine', '/app/username-scan', '03'],
+  ['Footprint Summary', '/app/footprint-summary', '04'],
+  ['Research Papers', '/app/research', '05'],
+  ['Reputation Insight', '/app/reputation-insight', '06'],
+  ['Profile Dashboard', '/app/profile-dashboard', '07'],
   ['Breach Check', '/app/breach', '08'],
-  ['Network Map', '/app/graph', '09'],
-  ['Reports', '/app/reports', '10'],
-  ['Operations', '/app/ops', '11'],
-  ['Profile & Settings', '/app/settings', '12']
+  ['Reports', '/app/reports', '09'],
+  ['Profile Settings', '/app/settings', '10'],
+  ['Operations', '/app/ops', '11']
 ];
 
 function Brand() {

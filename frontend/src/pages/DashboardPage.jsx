@@ -2,19 +2,19 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import FaceScanPage from './FaceScanPage';
 import UsernameDiscoveryPage from './UsernameDiscoveryPage';
-import ScrapeAggregationPage from './ScrapeAggregationPage';
+import DigitalFootprintSummaryPage from './DigitalFootprintSummaryPage';
 import ResearchPaperPage from './ResearchPaperPage';
-import ExposureScorePage from './ExposureScorePage';
-import GraphVisualizationPage from './GraphVisualizationPage';
+import ReputationInsightPage from './ReputationInsightPage';
+import ProfileDashboardPage from './ProfileDashboardPage';
 import SettingsPage from './SettingsPage';
 
 const chapters = [
-  ['Fake Recognition', '#fake-recognition'],
+  ['Face Search', '#face-search'],
   ['Username Engine', '#username-engine'],
-  ['Web Data Insights', '#web-data'],
+  ['Footprint Summary', '#footprint-summary'],
   ['Research Papers', '#research-papers'],
-  ['Risk Score', '#risk-score'],
-  ['Profile & Dashboard', '#profile-dashboard']
+  ['Reputation Insight', '#reputation-insight'],
+  ['Profile Dashboard', '#profile-dashboard']
 ];
 
 function Chapter({ id, label, title, text, children }) {
@@ -47,7 +47,7 @@ export default function DashboardPage() {
           Welcome, {displayName}
         </h1>
         <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-muted md:text-lg">
-          This is your complete one-page dashboard. Scroll once to run each tool, understand your results, and update your profile.
+          Scroll down once to reveal each module step by step. Every section is connected to live backend data and built to be understandable for non-technical users.
         </p>
 
         <div className="mx-auto mt-9 flex max-w-4xl flex-wrap justify-center gap-2">
@@ -57,15 +57,21 @@ export default function DashboardPage() {
             </a>
           ))}
         </div>
+
+        <div className="mt-5">
+          <a href="#profile-dashboard" className="sg-button-primary px-5 py-3 text-sm">
+            Jump to Profile Dashboard
+          </a>
+        </div>
       </section>
 
       <Chapter
-        id="fake-recognition"
+        id="face-search"
         label="Chapter 01"
-        title="Fake Recognition"
-        text="Upload an image and get a simple authenticity check. This helps you quickly spot whether a photo might be manipulated."
+        title="Face Recognition & Online Presence Search"
+        text="Upload your photo and optionally add a name or handle. We check public profile pages and show likely matches with links and previews."
       >
-        <FaceScanPage fakeMode embedded />
+        <FaceScanPage embedded />
       </Chapter>
 
       <Chapter
@@ -78,12 +84,12 @@ export default function DashboardPage() {
       </Chapter>
 
       <Chapter
-        id="web-data"
+        id="footprint-summary"
         label="Chapter 03"
-        title="Web Scraping & Data Aggregation"
-        text="Add public website links and keywords. ShadowGraph collects public data and turns it into clear, useful summaries."
+        title="Digital Footprint Summary"
+        text="See a clean overview of your public presence: social platforms, coding accounts, research visibility, and linked profile counts."
       >
-        <ScrapeAggregationPage embedded />
+        <DigitalFootprintSummaryPage embedded />
       </Chapter>
 
       <Chapter
@@ -96,22 +102,22 @@ export default function DashboardPage() {
       </Chapter>
 
       <Chapter
-        id="risk-score"
+        id="reputation-insight"
         label="Chapter 05"
-        title="Risk Scoring System"
-        text="View your overall exposure score with easy recommendations to reduce risk step by step."
+        title="Reputation Insight"
+        text="Get a practical visibility score and clear recommendations so you know where you are easy to find online and what to improve."
       >
-        <ExposureScorePage embedded />
+        <ReputationInsightPage embedded />
       </Chapter>
 
       <Chapter
         id="profile-dashboard"
         label="Chapter 06"
         title="User Profile & Dashboard"
-        text="Manage your profile, review your interactive graph, and update preferences in one place."
+        text="Manage your profile picture and details, review dynamic charts, and open settings from one unified dashboard."
       >
         <div className="space-y-6">
-          <GraphVisualizationPage embedded />
+          <ProfileDashboardPage embedded />
           <SettingsPage embedded />
         </div>
       </Chapter>

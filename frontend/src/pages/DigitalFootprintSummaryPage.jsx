@@ -1,0 +1,116 @@
+import { useEffect, useState } from 'react';
+import GlassCard from '../components/GlassCard';
+import LoadingSpinner from '../components/LoadingSpinner';
+import PageHeader from '../components/PageHeader';
+import { ErrorState, EmptyState } from '../components/AsyncState';
+import { getDigitalFootprintSummary } from '../services/endpoints';
+import { getDisplayError } from '../services/apiErrors';
+
+export default function DigitalFootprintSummaryPage({ embedded = false }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const load = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const result = await getDigitalFootprintSummary();
+      setData(result);
+    } catch (err) {
+      setError(getDisplayError(err, 'Could not load your footprint summary.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  return (
+    <div>
+      {!embedded ? <PageHeader title="Digital Footprint Summary" subtitle="A simple overview of where you appear online." /> : null}
+
+      {error ? <ErrorState message={error} onRetry={load} /> : null}
+      {loading ? (
+        <div className="rounded-xl border border-white/10 bg-surface/70 p-4 text-sm text-muted">
+          <LoadingSpinner /> Building your footprint summary...
+        </div>
+      ) : null}
+
+      {!loading && !error && data ? (
+        <div className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
+          <GlassCard className="p-5">
+            <h3 className="text-lg font-semibold">Your online visibility</h3>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <div className="rounded-xl border border-white/10 bg-surface/70 p-3">
+                <p className="text-xs uppercase tracking-[0.16em] text-muted">Accounts Found</p>
+                <p className="mt-2 text-3xl font-semibold">{data.total_accounts_found}</p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-surface/70 p-3">
+                <p className="text-xs uppercase tracking-[0.16em] text-muted">Active Platforms</p>
+                <p className="mt-2 text-3xl font-semibold">{data.active_platforms.length}</p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-surface/70 p-3">
+                <p className="text-xs uppercase tracking-[0.16em] text-muted">Research Records</p>
+                <p className="mt-2 text-3xl font-semibold">{data.research_papers_found}</p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-surface/70 p-3">
+                <p className="text-xs uppercase tracking-[0.16em] text-muted">Breach Records</p>
+                <p className="mt-2 text-3xl font-semibold">{data.breach_records_found}</p>
+              </div>
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              {data.active_platforms.map((platform) => (
+                <span key={platform} className="sg-chip">{platform}</span>
+              ))}
+            </div>
+          </GlassCard>
+
+          <GlassCard className="p-5">
+            <h3 className="text-lg font-semibold">Platform categories</h3>
+            <div className="mt-4 space-y-3 text-sm">
+              {Object.entries(data.categories || {}).map(([name, count]) => {
+                const safeCount = Number(count) || 0;
+                const width = Math.max(6, Math.min(100, safeCount * 12));
+                return (
+                  <div key={name}>
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="text-muted">{name}</span>
+                      <span>{safeCount}</span>
+                    </div>
+                    <div className="h-2 rounded bg-white/10">
+                      <div className="h-2 rounded bg-gradient-to-r from-[#00BFFF] to-[#1ED760]" style={{ width: `${width}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </GlassCard>
+
+          <GlassCard className="p-5 xl:col-span-2">
+            <h3 className="text-lg font-semibold">Profiles found</h3>
+            {!data.profiles?.length ? (
+              <EmptyState className="mt-3" message="Run Username Engine or Face Recognition to build your profile list." />
+            ) : (
+              <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {data.profiles.map((row) => (
+                  <div key={`${row.platform}-${row.profile_url}`} className="rounded-xl border border-white/10 bg-surface/70 p-3">
+                    <p className="text-sm font-medium">{row.platform}</p>
+                    <p className="text-xs text-muted">{row.category}</p>
+                    <p className="mt-1 text-xs text-muted">@{row.username || 'unknown'}</p>
+                    <a href={row.profile_url} className="mt-2 block truncate text-xs text-accent hover:underline">
+                      {row.profile_url}
+                    </a>
+                  </div>
+                ))}
+              </div>
+            )}
+          </GlassCard>
+        </div>
+      ) : null}
+    </div>
+  );
+}

@@ -11,6 +11,7 @@ import { useToast } from '../context/ToastContext';
 export default function FaceScanPage({ fakeMode = false, embedded = false }) {
   const [preview, setPreview] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
+  const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
@@ -25,7 +26,7 @@ export default function FaceScanPage({ fakeMode = false, embedded = false }) {
     setLoading(true);
     setError('');
     try {
-      const data = await scanFace(selectedFile);
+      const data = await scanFace(selectedFile, searchText);
       setResult(data);
       success(fakeMode ? 'Fake detection complete' : 'Face scan complete');
     } catch (err) {
@@ -53,6 +54,14 @@ export default function FaceScanPage({ fakeMode = false, embedded = false }) {
       <div className="grid gap-4 xl:grid-cols-[1.15fr_1fr]">
         <GlassCard className="p-5 md:p-6">
           <p className="sg-kicker">Image Intelligence</p>
+          <div className="mt-3">
+            <input
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              className="sg-input"
+              placeholder="Name or handle to search (optional)"
+            />
+          </div>
           <div className="mt-4 flex h-72 items-center justify-center rounded-xl border border-dashed border-white/20 bg-surface/45 md:h-80">
             {preview ? (
               <img src={preview} alt="Face preview" className="h-full w-full rounded-xl object-cover" />
@@ -134,6 +143,36 @@ export default function FaceScanPage({ fakeMode = false, embedded = false }) {
                     <p className="text-sm">Fake detection confidence: {result.fake_detection_confidence}%</p>
                     <p className="mt-1 text-xs text-muted">Label: {result.fake_detection_label}</p>
                   </div>
+
+                  {result.online_presence?.length ? (
+                    <div className="rounded-xl border border-white/10 bg-surface/85 p-3">
+                      <div className="mb-2 flex items-center justify-between">
+                        <p className="text-sm">Online presence matches</p>
+                        <p className="text-xs text-muted">
+                          {result.presence_summary?.profiles_found || result.online_presence.length} found
+                        </p>
+                      </div>
+                      <div className="max-h-56 space-y-2 overflow-auto pr-1">
+                        {result.online_presence.map((row) => (
+                          <div key={`${row.platform}-${row.profile_url}`} className="rounded-lg border border-white/10 bg-[#1a1a1f] p-2">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="text-sm">{row.platform}</p>
+                              <p className="text-xs text-muted">@{row.username}</p>
+                            </div>
+                            {row.image_preview ? (
+                              <img src={row.image_preview} alt={row.platform} className="mt-2 h-16 w-16 rounded object-cover" />
+                            ) : null}
+                            <a href={row.profile_url} className="mt-2 block truncate text-xs text-accent hover:underline">
+                              {row.profile_url}
+                            </a>
+                            {row.face_match_confidence !== null && row.face_match_confidence !== undefined ? (
+                              <p className="mt-1 text-xs text-cyan">Face match confidence: {row.face_match_confidence}%</p>
+                            ) : null}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
 
                   {result.anti_spoof_model ? (
                     <div className="rounded-xl border border-white/10 bg-surface/85 p-3 text-xs text-muted">

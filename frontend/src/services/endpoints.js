@@ -10,7 +10,7 @@ function profileLink(platform, username) {
   return '-';
 }
 
-export async function scanFace(imageFile) {
+export async function scanFace(imageFile, searchText = '') {
   try {
     if (!imageFile) {
       throw new ApiError('Upload an image before scanning.', { status: 400, code: 'MISSING_FILE' });
@@ -18,6 +18,9 @@ export async function scanFace(imageFile) {
 
     const formData = new FormData();
     formData.append('file', imageFile);
+    if (searchText?.trim()) {
+      formData.append('search_text', searchText.trim());
+    }
 
     const { data } = await apiClient.post('/upload-face', formData, {
       headers: {
@@ -27,6 +30,8 @@ export async function scanFace(imageFile) {
 
     return {
       matched_profiles: data.matched_profiles || [],
+      online_presence: data.online_presence || [],
+      presence_summary: data.presence_summary || { profiles_found: 0, platforms_checked: 0 },
       faces_detected: data.faces_detected ?? 0,
       fake_detection_confidence: data.fake_detection_confidence ?? 0,
       fake_detection_label: data.fake_detection_label || 'Unknown',
@@ -35,6 +40,40 @@ export async function scanFace(imageFile) {
     };
   } catch (error) {
     throw normalizeApiError(error, 'Failed to run face scan.');
+  }
+}
+
+export async function getDigitalFootprintSummary() {
+  try {
+    const { data } = await apiClient.get('/digital-footprint-summary');
+    return data.summary || {
+      total_accounts_found: 0,
+      active_platforms: [],
+      categories: { Social: 0, Coding: 0, Academic: 0 },
+      research_papers_found: 0,
+      breach_records_found: 0,
+      profiles: []
+    };
+  } catch (error) {
+    throw normalizeApiError(error, 'Failed to load digital footprint summary.');
+  }
+}
+
+export async function getReputationInsight() {
+  try {
+    const { data } = await apiClient.get('/reputation-insight');
+    return data;
+  } catch (error) {
+    throw normalizeApiError(error, 'Failed to load reputation insight.');
+  }
+}
+
+export async function getProfileDashboard() {
+  try {
+    const { data } = await apiClient.get('/profile-dashboard');
+    return data;
+  } catch (error) {
+    throw normalizeApiError(error, 'Failed to load profile dashboard.');
   }
 }
 
@@ -65,6 +104,8 @@ export async function searchResearch(name, institution) {
       source: paper.source,
       year: paper.year,
       citations: paper.citations,
+      summary: paper.summary || '',
+      url: paper.url || '',
       institution
     }));
   } catch (error) {

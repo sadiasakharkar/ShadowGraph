@@ -18,7 +18,7 @@ import face_recognition
 import httpx
 import numpy as np
 from bs4 import BeautifulSoup
-from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile, status
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
@@ -85,22 +85,14 @@ FACE_GALLERY_META = FACE_GALLERY_DIR / 'metadata.json'
 FACE_DETECTOR = cv2.CascadeClassifier(str(Path(cv2.data.haarcascades) / 'haarcascade_frontalface_default.xml'))
 
 PLATFORMS = [
-    {
-        'name': 'LinkedIn',
-        'url_template': 'https://www.linkedin.com/in/{username}/',
-    },
-    {
-        'name': 'GitHub',
-        'url_template': 'https://github.com/{username}',
-    },
-    {
-        'name': 'LeetCode',
-        'url_template': 'https://leetcode.com/{username}/',
-    },
-    {
-        'name': 'GeeksforGeeks',
-        'url_template': 'https://www.geeksforgeeks.org/user/{username}/',
-    },
+    {'name': 'LinkedIn', 'url_template': 'https://www.linkedin.com/in/{username}/', 'category': 'Social'},
+    {'name': 'GitHub', 'url_template': 'https://github.com/{username}', 'category': 'Coding'},
+    {'name': 'LeetCode', 'url_template': 'https://leetcode.com/{username}/', 'category': 'Coding'},
+    {'name': 'GeeksforGeeks', 'url_template': 'https://www.geeksforgeeks.org/user/{username}/', 'category': 'Coding'},
+    {'name': 'Stack Overflow', 'url_template': 'https://stackoverflow.com/users/{username}', 'category': 'Coding'},
+    {'name': 'X (Twitter)', 'url_template': 'https://x.com/{username}', 'category': 'Social'},
+    {'name': 'Medium', 'url_template': 'https://medium.com/@{username}', 'category': 'Social'},
+    {'name': 'IEEE Xplore', 'url_template': 'https://ieeexplore.ieee.org/search/searchresult.jsp?newsearch=true&queryText={username}', 'category': 'Academic'},
 ]
 
 RATE_LIMITS = {
@@ -928,9 +920,103 @@ def _anti_spoof_deep(image: np.ndarray) -> dict[str, Any] | None:
     }
 
 
+def _absolute_media_url(base_url: str, media_url: str) -> str:
+    if not media_url:
+        return ''
+    parsed = urlparse(media_url)
+    if parsed.scheme in ('http', 'https'):
+        return media_url
+    return urljoin(base_url, media_url)
+
+
+def _extract_profile_preview(url: str, html: str) -> dict[str, str]:
+    soup = BeautifulSoup(html, 'html.parser')
+    title = _normalize_text(soup.title.string if soup.title and soup.title.string else 'Profile')
+    image = ''
+    og = soup.find('meta', attrs={'property': 'og:image'})
+    if og and og.get('content'):
+        image = og.get('content', '').strip()
+    if not image:
+        tw = soup.find('meta', attrs={'name': 'twitter:image'})
+        if tw and tw.get('content'):
+            image = tw.get('content', '').strip()
+    return {'title': title[:180], 'image_url': _absolute_media_url(url, image)}
+
+
+def _face_match_confidence(query_encodings: list[np.ndarray], candidate_image_bytes: bytes) -> int | None:
+    if not query_encodings:
+        return None
+    try:
+        image = face_recognition.load_image_file(io.BytesIO(candidate_image_bytes))
+        locations = face_recognition.face_locations(image, model='hog')
+        if not locations:
+            return None
+        candidate_encodings = face_recognition.face_encodings(image, known_face_locations=locations)
+        if not candidate_encodings:
+            return None
+        distance = float(np.linalg.norm(query_encodings[0] - candidate_encodings[0]))
+        return _confidence_from_distance(distance)
+    except Exception:
+        return None
+
+
+async def _build_online_presence(query_encodings: list[np.ndarray], search_hint: str) -> list[dict[str, Any]]:
+    variants = _username_variants(search_hint)[:8]
+    if not variants:
+        return []
+
+    matches: list[dict[str, Any]] = []
+    async with httpx.AsyncClient(
+        timeout=10,
+        follow_redirects=True,
+        headers={'User-Agent': 'Mozilla/5.0 (compatible; ShadowGraphPresence/1.0; +https://shadowgraph.local)'},
+    ) as client:
+        for platform in PLATFORMS:
+            best: dict[str, Any] | None = None
+            for variant in variants:
+                url = platform['url_template'].format(username=variant)
+                try:
+                    resp = await client.get(url)
+                except httpx.HTTPError:
+                    continue
+                if resp.status_code >= 400:
+                    continue
+                preview = _extract_profile_preview(url, resp.text)
+                face_confidence = None
+                if preview.get('image_url'):
+                    try:
+                        image_resp = await client.get(preview['image_url'])
+                        if image_resp.status_code < 400 and image_resp.content:
+                            face_confidence = _face_match_confidence(query_encodings, image_resp.content)
+                    except httpx.HTTPError:
+                        face_confidence = None
+
+                row = {
+                    'platform': platform['name'],
+                    'category': platform.get('category', 'General'),
+                    'username': variant,
+                    'profile_url': url,
+                    'title': preview.get('title', 'Profile'),
+                    'image_preview': preview.get('image_url', ''),
+                    'face_match_confidence': face_confidence,
+                    'status': 'Found',
+                }
+                if not best:
+                    best = row
+                else:
+                    prev = best.get('face_match_confidence')
+                    cur = row.get('face_match_confidence')
+                    if (cur or -1) > (prev or -1):
+                        best = row
+            if best:
+                matches.append(best)
+    return matches
+
+
 @app.post('/upload-face')
 async def upload_face(
     file: UploadFile = File(...),
+    search_text: str | None = Form(default=None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict[str, Any]:
@@ -968,14 +1054,23 @@ async def upload_face(
         primary_face = max(cv_faces, key=lambda face: face[2] * face[3]) if cv_faces else (0, 0, image.shape[1], image.shape[0])
         fake = _anti_spoof_heuristic(image, primary_face)
 
+    search_hint = (search_text or '').strip()
+    online_presence = await _build_online_presence(query_encodings, search_hint) if search_hint else []
+
     payload = {
         'matched_profiles': matched_profiles,
+        'online_presence': online_presence,
         'faces_detected': max(len(cv_faces), len(query_encodings)),
         'fake_detection_confidence': fake['fake_score'],
         'fake_detection_label': fake['label'],
         'signals': fake['signals'],
         'anti_spoof_model': fake['model'],
+        'presence_summary': {
+            'profiles_found': len(online_presence),
+            'platforms_checked': len(PLATFORMS),
+        },
         'status': 'processed',
+        'source_policy': 'Public profile pages only. Results depend on public availability and site access rules.',
     }
     store_scan_event(db, current_user, 'face_scan', payload)
     return payload
@@ -1130,6 +1225,7 @@ async def scan_username(
             'duration_ms': duration_ms,
         },
         'status': 'live-scan',
+        'source_policy': 'Public profile URLs only. No private or gated data is accessed.',
     }
     store_scan_event(db, current_user, 'username_scan', response_payload)
     return response_payload
@@ -1255,6 +1351,9 @@ def _paper_from_crossref_item(item: dict[str, Any]) -> dict[str, Any]:
     year = issued[0][0] if issued and issued[0] else None
     doi = item.get('DOI')
     url = item.get('URL')
+    abstract_raw = item.get('abstract') or ''
+    abstract_text = re.sub(r'<[^>]+>', ' ', abstract_raw)
+    abstract_text = _normalize_text(abstract_text)
     title = title_values[0] if title_values else 'Untitled'
     dedupe_key = (doi or f'{title.lower()}::{year or "na"}').strip()
 
@@ -1266,6 +1365,7 @@ def _paper_from_crossref_item(item: dict[str, Any]) -> dict[str, Any]:
         'citations': item.get('is-referenced-by-count', 0),
         'doi': doi,
         'url': url,
+        'summary': abstract_text[:420] if abstract_text else 'Summary not provided by source.',
         '_dedupe_key': dedupe_key.lower(),
     }
 
@@ -1717,6 +1817,127 @@ def _risk_tips(score: int, breach_exposure: int, leak_indicators: int) -> list[s
     return tips
 
 
+def _category_for_platform(platform_name: str) -> str:
+    lowered = (platform_name or '').lower()
+    if any(k in lowered for k in ('github', 'leetcode', 'geeksforgeeks', 'stack overflow', 'stackoverflow')):
+        return 'Coding'
+    if any(k in lowered for k in ('ieee', 'research', 'scholar')):
+        return 'Academic'
+    return 'Social'
+
+
+def _build_footprint_summary(db: Session, current_user: User) -> dict[str, Any]:
+    events = (
+        db.query(ScanEvent)
+        .filter(ScanEvent.user_id == current_user.id)
+        .order_by(ScanEvent.created_at.desc())
+        .limit(250)
+        .all()
+    )
+
+    profiles: dict[str, dict[str, Any]] = {}
+    papers_count = 0
+    breaches_count = 0
+    active_platforms: set[str] = set()
+    categories = {'Social': 0, 'Coding': 0, 'Academic': 0}
+
+    for event in events:
+        payload = _safe_json(event.payload_json)
+        if event.scan_type == 'username_scan':
+            for row in payload.get('results', []):
+                if row.get('status') != 'Found':
+                    continue
+                platform = row.get('platform', 'Unknown')
+                profile_url = row.get('profile_url', '')
+                key = f'{platform}:{profile_url}'
+                if key not in profiles:
+                    category = _category_for_platform(platform)
+                    profiles[key] = {
+                        'platform': platform,
+                        'category': category,
+                        'username': row.get('username', ''),
+                        'profile_url': profile_url,
+                    }
+        elif event.scan_type == 'face_scan':
+            for row in payload.get('online_presence', []):
+                platform = row.get('platform', 'Unknown')
+                profile_url = row.get('profile_url', '')
+                key = f'{platform}:{profile_url}'
+                if key not in profiles:
+                    profiles[key] = {
+                        'platform': platform,
+                        'category': row.get('category') or _category_for_platform(platform),
+                        'username': row.get('username', ''),
+                        'profile_url': profile_url,
+                        'image_preview': row.get('image_preview', ''),
+                    }
+        elif event.scan_type == 'research_search':
+            papers_count += len(payload.get('papers', []))
+        elif event.scan_type == 'breach_check':
+            breaches_count += len(payload.get('breaches', []))
+
+    for row in profiles.values():
+        platform = row.get('platform')
+        if platform:
+            active_platforms.add(platform)
+        category = row.get('category', 'Social')
+        categories[category] = categories.get(category, 0) + 1
+
+    profile_rows = sorted(profiles.values(), key=lambda x: (x.get('category', ''), x.get('platform', '')))[:120]
+    return {
+        'total_accounts_found': len(profile_rows),
+        'active_platforms': sorted(active_platforms),
+        'categories': categories,
+        'research_papers_found': papers_count,
+        'breach_records_found': breaches_count,
+        'profiles': profile_rows,
+    }
+
+
+def _build_reputation_insight(summary: dict[str, Any]) -> dict[str, Any]:
+    accounts = int(summary.get('total_accounts_found', 0))
+    papers = int(summary.get('research_papers_found', 0))
+    breaches = int(summary.get('breach_records_found', 0))
+
+    visibility_score = min(100, accounts * 8 + papers * 3)
+    exposure_penalty = min(40, breaches * 8)
+    reputation_score = max(0, min(100, 55 + visibility_score // 2 - exposure_penalty))
+
+    highlights: list[str] = []
+    if accounts >= 5:
+        highlights.append('You are highly visible across multiple public platforms.')
+    elif accounts >= 2:
+        highlights.append('You have moderate online visibility.')
+    else:
+        highlights.append('You have low online visibility based on recent scans.')
+
+    if papers > 0:
+        highlights.append(f'Academic visibility detected: {papers} publication record(s).')
+    if breaches > 0:
+        highlights.append(f'Exposure warning: {breaches} breach record(s) found.')
+    else:
+        highlights.append('No breach records found in recent checks.')
+
+    actions: list[str] = []
+    if breaches > 0:
+        actions.append('Enable multi-factor authentication and rotate important passwords.')
+    if accounts > 8:
+        actions.append('Review old profiles and remove outdated public information.')
+    if papers == 0:
+        actions.append('If you publish work, add consistent profile links for discoverability.')
+    if not actions:
+        actions.append('Keep scanning periodically to maintain a healthy reputation profile.')
+
+    return {
+        'reputation_score': reputation_score,
+        'visibility_score': visibility_score,
+        'exposure_penalty': exposure_penalty,
+        'highlights': highlights[:4],
+        'recommended_actions': actions[:4],
+        'status': 'calculated',
+    }
+
+
 @app.post('/calculate-risk')
 def calculate_risk(
     payload: RiskRequest | None = None,
@@ -1754,6 +1975,63 @@ def calculate_risk(
     }
     store_scan_event(db, current_user, 'risk_calculation', response_payload)
     return response_payload
+
+
+@app.get('/digital-footprint-summary')
+def digital_footprint_summary(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict[str, Any]:
+    summary = _build_footprint_summary(db, current_user)
+    payload = {
+        'summary': summary,
+        'status': 'compiled',
+    }
+    store_scan_event(db, current_user, 'digital_footprint_summary', payload)
+    return payload
+
+
+@app.get('/profile-dashboard')
+def profile_dashboard(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict[str, Any]:
+    summary = _build_footprint_summary(db, current_user)
+    settings = _ensure_user_settings(db, current_user)
+    events = (
+        db.query(ScanEvent)
+        .filter(ScanEvent.user_id == current_user.id)
+        .order_by(ScanEvent.created_at.desc())
+        .limit(200)
+        .all()
+    )
+
+    by_day: dict[str, int] = defaultdict(int)
+    for event in events:
+        day = event.created_at.astimezone(timezone.utc).strftime('%Y-%m-%d')
+        by_day[day] += 1
+    activity = [{'date': day, 'count': count} for day, count in sorted(by_day.items())][-30:]
+
+    return {
+        'profile': {
+            'name': current_user.name,
+            'email': current_user.email,
+            'member_since': current_user.created_at.isoformat(),
+            'privacy': _serialize_settings(settings),
+        },
+        'stats': {
+            'accounts_found': summary['total_accounts_found'],
+            'platforms': len(summary['active_platforms']),
+            'papers': summary['research_papers_found'],
+            'breaches': summary['breach_records_found'],
+        },
+        'activity': activity,
+        'top_profiles': summary['profiles'][:12],
+        'status': 'dashboard-ready',
+    }
+
+
+@app.get('/reputation-insight')
+def reputation_insight(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict[str, Any]:
+    summary = _build_footprint_summary(db, current_user)
+    insight = _build_reputation_insight(summary)
+    payload = {'insight': insight, 'summary': summary, 'status': 'calculated'}
+    store_scan_event(db, current_user, 'reputation_insight', payload)
+    return payload
 
 
 def _safe_json(raw: str) -> dict[str, Any]:

@@ -70,6 +70,12 @@ export default function ResearchPaperPage({ embedded = false }) {
                 <p>Publication Source: {paper.source}</p>
                 <p>Year: {paper.year}</p>
               </div>
+              <p className="mt-3 text-sm text-muted">{paper.summary || 'Summary not available.'}</p>
+              {paper.url ? (
+                <a href={paper.url} className="mt-2 block text-xs text-accent hover:underline">
+                  Open paper source
+                </a>
+              ) : null}
               <p className="mt-3 text-sm text-cyan">Citation Count: {paper.citations}</p>
             </GlassCard>
           ))}
