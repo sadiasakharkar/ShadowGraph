@@ -1,6 +1,5 @@
 # ShadowGraph
-
-https://api.countapi.xyz/hit/shadowgraph/repo_visits
+![Visitor Count](https://visitor-badge.laobi.icu/badge?page_id=sadiasakharkar.ShadowGraph)
 
 ShadowGraph is a cinematic, single-scroll digital footprint intelligence platform that helps users discover where they appear online, understand their visibility, and take practical next steps.
 
