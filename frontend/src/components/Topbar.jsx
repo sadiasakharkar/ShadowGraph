@@ -26,12 +26,12 @@ export default function Topbar({ onOpenMenu }) {
           </button>
           <div>
             <p className="text-[11px] uppercase tracking-[0.2em] text-muted">Active Intelligence</p>
-            <h3 className="text-sm font-medium text-text md:text-base">Continuous digital footprint correlation</h3>
+            <h3 className="text-sm font-medium text-text md:text-base">Live scan results and risk updates</h3>
           </div>
         </div>
 
         <div className="flex items-center gap-2 md:gap-3">
-          <button className="rounded-lg border border-white/15 bg-surface/85 px-3 py-2 text-sm text-muted transition hover:text-text">Alerts</button>
+          <button className="rounded-lg border border-white/15 bg-surface/85 px-3 py-2 text-sm text-muted transition hover:text-text">Notifications</button>
           <button
             onClick={() => setOpenProfile((v) => !v)}
             className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-surface/85 px-3 py-2 text-sm text-muted transition hover:text-text"

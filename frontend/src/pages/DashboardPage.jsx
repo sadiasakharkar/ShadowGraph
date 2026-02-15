@@ -1,114 +1,170 @@
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import PageHeader from '../components/PageHeader';
-import StatCard from '../components/StatCard';
 import GlassCard from '../components/GlassCard';
+import StatCard from '../components/StatCard';
 import { useAuth } from '../context/AuthContext';
+import FaceScanPage from './FaceScanPage';
+import UsernameDiscoveryPage from './UsernameDiscoveryPage';
+import ScrapeAggregationPage from './ScrapeAggregationPage';
+import ResearchPaperPage from './ResearchPaperPage';
+import ExposureScorePage from './ExposureScorePage';
+import BreachMonitorPage from './BreachMonitorPage';
+import GraphVisualizationPage from './GraphVisualizationPage';
+import ReportsPage from './ReportsPage';
+import SettingsPage from './SettingsPage';
 
-const quickActions = [
-  ['Run Face Scan', '/app/face-scan', 'Validate identity overlap across visual web surfaces.', 'Face'],
-  ['Discover Usernames', '/app/username-scan', 'Find profile associations across major platforms.', 'Identity'],
-  ['Check Breaches', '/app/breach', 'Audit known account exposure using breach intelligence.', 'Breach'],
-  ['Open Graph', '/app/graph', 'View network-level topology of your digital shadow.', 'Graph']
+const sectionLinks = [
+  ['Quick View', '#quick-view'],
+  ['Fake Check', '#fake-check'],
+  ['Username Search', '#username-search'],
+  ['Web Scan', '#web-scan'],
+  ['Publications', '#publications'],
+  ['Risk Score', '#risk-score'],
+  ['Breach Check', '#breach-check'],
+  ['Network Map', '#network-map'],
+  ['Reports', '#reports'],
+  ['Your Profile', '#your-profile']
 ];
 
-const usage = [
-  ['Face/Fake Scans', '18'],
-  ['Username Runs', '27'],
-  ['Research Queries', '12'],
-  ['Breach Checks', '9']
-];
+function SectionBlock({ id, title, helpText, children }) {
+  return (
+    <motion.section
+      id={id}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+      viewport={{ once: true, amount: 0.12 }}
+      className="sg-section px-4 py-6 md:px-6 md:py-7"
+    >
+      <div className="mb-5">
+        <p className="sg-kicker">Guided Section</p>
+        <h2 className="mt-2 text-2xl font-semibold tracking-tight md:text-3xl">{title}</h2>
+        <p className="mt-2 text-sm text-muted">{helpText}</p>
+      </div>
+      {children}
+    </motion.section>
+  );
+}
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const displayName = user?.email?.split('@')?.[0] || 'Operator';
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
-        title="Overview"
-        subtitle="Unified operational cockpit for digital shadow mapping, exposure detection, and response planning."
-        actions={
-          <Link to="/app/reports" className="sg-button-secondary">
-            Open Reports
-          </Link>
-        }
+        title="ShadowGraph One-Page Workspace"
+        subtitle="Everything is on one long page. Scroll naturally, run each tool, and see your live results in one place."
+        eyebrow="Simple, Guided Experience"
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard title="Profiles Correlated" value="34" hint="Across 18 platforms" />
-        <StatCard title="Potential Breaches" value="2" hint="1 high-risk event" />
-        <StatCard title="Research Records" value="6" hint="Indexed publication entities" />
-        <StatCard title="Current Risk Score" value="67" hint="Moderate exposure" />
+      <div className="sticky top-3 z-20 -mt-2 overflow-x-auto rounded-xl border border-white/10 bg-[#11111a]/90 p-2 backdrop-blur-xl">
+        <div className="flex min-w-max gap-2">
+          {sectionLinks.map(([label, href]) => (
+            <a key={href} href={href} className="sg-button-secondary whitespace-nowrap px-3 py-2 text-xs">
+              {label}
+            </a>
+          ))}
+        </div>
       </div>
 
-      <div className="mt-6 grid gap-4 xl:grid-cols-[1.35fr_1fr]">
+      <section id="quick-view" className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
         <GlassCard className="p-5 md:p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="sg-kicker">Personalized Profile</p>
-              <h3 className="mt-2 text-2xl font-semibold tracking-tight">{displayName}</h3>
-              <p className="mt-1 text-sm text-muted">{user?.email || 'analyst@shadowgraph.ai'}</p>
+          <p className="sg-kicker">Welcome Back</p>
+          <h2 className="mt-2 text-3xl font-semibold tracking-tight md:text-4xl">Hi {displayName}, your digital footprint is ready to review.</h2>
+          <p className="mt-3 text-sm leading-7 text-muted">
+            This page is designed like a guided documentary. Every section below is live and connected to your backend tools.
+            You can run scans, review findings, and update your profile without jumping between pages.
+          </p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-white/10 bg-surface/70 p-4">
+              <p className="text-xs uppercase tracking-[0.16em] text-muted">Signed-in Account</p>
+              <p className="mt-2 text-sm">{user?.email || 'analyst@shadowgraph.ai'}</p>
             </div>
-            <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan/35 bg-cyan/10 text-lg">
-              {displayName.slice(0, 2).toUpperCase()}
+            <div className="rounded-xl border border-white/10 bg-surface/70 p-4">
+              <p className="text-xs uppercase tracking-[0.16em] text-muted">Tip</p>
+              <p className="mt-2 text-sm text-muted">Start with fake check or username search, then move to risk score.</p>
             </div>
-          </div>
-
-          <div className="mt-5 grid gap-3 md:grid-cols-2">
-            {usage.map(([label, value]) => (
-              <div key={label} className="rounded-xl border border-white/10 bg-surface/70 px-4 py-3">
-                <p className="text-xs uppercase tracking-[0.14em] text-muted">{label}</p>
-                <p className="mt-2 text-2xl font-semibold tracking-tight">{value}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-5 flex flex-wrap gap-2">
-            <Link to="/app/settings" className="sg-button-primary px-4 py-2.5">
-              Edit Profile Settings
-            </Link>
-            <Link to="/app/exposure-score" className="sg-button-secondary px-4 py-2.5">
-              Review Risk Vector
-            </Link>
           </div>
         </GlassCard>
 
-        <GlassCard className="p-5 md:p-6">
-          <p className="sg-kicker">Live Modules</p>
-          <h3 className="mt-2 text-2xl font-semibold tracking-tight">Interactive module previews</h3>
-          <div className="mt-4 space-y-3">
-            {quickActions.slice(0, 3).map(([title, href, desc]) => (
-              <Link key={href} to={href} className="block rounded-xl border border-white/10 bg-surface/65 p-3 transition hover:border-cyan/35 hover:bg-surface/85">
-                <p className="text-sm font-medium">{title}</p>
-                <p className="mt-1 text-xs leading-6 text-muted">{desc}</p>
-              </Link>
-            ))}
-          </div>
-        </GlassCard>
-      </div>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+          <StatCard title="Profiles Found" value="34" hint="Across supported platforms" />
+          <StatCard title="Possible Breaches" value="2" hint="Needs your attention" />
+        </div>
+      </section>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
-        {quickActions.map(([title, href, desc, badge], idx) => (
-          <motion.div
-            key={href}
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.05 }}
-            viewport={{ once: true, amount: 0.3 }}
-          >
-            <Link to={href}>
-              <GlassCard className="h-full p-6 transition hover:-translate-y-1">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-semibold tracking-tight">{title}</h3>
-                  <span className="sg-chip">{badge}</span>
-                </div>
-                <p className="mt-3 text-sm text-muted">{desc}</p>
-              </GlassCard>
-            </Link>
-          </motion.div>
-        ))}
-      </div>
+      <SectionBlock
+        id="fake-check"
+        title="Fake Recognition"
+        helpText="Upload a face photo to check if the image looks authentic or manipulated."
+      >
+        <FaceScanPage fakeMode />
+      </SectionBlock>
+
+      <SectionBlock
+        id="username-search"
+        title="Username Display Engine"
+        helpText="Type a username once and check where it appears online."
+      >
+        <UsernameDiscoveryPage />
+      </SectionBlock>
+
+      <SectionBlock
+        id="web-scan"
+        title="Web Scraping & Data Aggregation"
+        helpText="Enter website links and keywords to gather public signals in one summary."
+      >
+        <ScrapeAggregationPage />
+      </SectionBlock>
+
+      <SectionBlock
+        id="publications"
+        title="Research Paper Detection"
+        helpText="Search papers by name and institution to see publication visibility."
+      >
+        <ResearchPaperPage />
+      </SectionBlock>
+
+      <SectionBlock
+        id="risk-score"
+        title="Risk Scoring System"
+        helpText="Get a clear risk score and practical improvement suggestions."
+      >
+        <ExposureScorePage />
+      </SectionBlock>
+
+      <SectionBlock
+        id="breach-check"
+        title="Breach Monitoring"
+        helpText="Check if an email appears in known breaches and what data was exposed."
+      >
+        <BreachMonitorPage />
+      </SectionBlock>
+
+      <SectionBlock
+        id="network-map"
+        title="Visual Network Map"
+        helpText="See your connected accounts, research signals, and events in an interactive graph."
+      >
+        <GraphVisualizationPage />
+      </SectionBlock>
+
+      <SectionBlock
+        id="reports"
+        title="Reports"
+        helpText="Download your report and review recent scan history."
+      >
+        <ReportsPage />
+      </SectionBlock>
+
+      <SectionBlock
+        id="your-profile"
+        title="Your Profile & Settings"
+        helpText="Edit preferences, privacy controls, and account actions from one place."
+      >
+        <SettingsPage />
+      </SectionBlock>
     </div>
   );
 }

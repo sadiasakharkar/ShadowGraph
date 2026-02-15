@@ -2,18 +2,18 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const links = [
-  ['Overview', '/app/overview', '01'],
-  ['Face Scan', '/app/face-scan', '02'],
-  ['Fake Detection', '/app/fake-detection', '03'],
-  ['Username Scan', '/app/username-scan', '04'],
-  ['Web Aggregation', '/app/scrape', '05'],
-  ['Research Papers', '/app/research', '06'],
-  ['Exposure Score', '/app/exposure-score', '07'],
-  ['Breach Monitor', '/app/breach', '08'],
-  ['Graph View', '/app/graph', '09'],
+  ['One-Page Workspace', '/app/overview', '01'],
+  ['Face Match', '/app/face-scan', '02'],
+  ['Fake Check', '/app/fake-detection', '03'],
+  ['Username Search', '/app/username-scan', '04'],
+  ['Web Scan', '/app/scrape', '05'],
+  ['Publication Search', '/app/research', '06'],
+  ['Risk Score', '/app/exposure-score', '07'],
+  ['Breach Check', '/app/breach', '08'],
+  ['Network Map', '/app/graph', '09'],
   ['Reports', '/app/reports', '10'],
-  ['Ops Dashboard', '/app/ops', '11'],
-  ['Settings', '/app/settings', '12']
+  ['Operations', '/app/ops', '11'],
+  ['Profile & Settings', '/app/settings', '12']
 ];
 
 function Brand() {
@@ -21,7 +21,7 @@ function Brand() {
     <div className="mb-7 border-b border-white/10 pb-5">
       <p className="sg-kicker">ShadowGraph</p>
       <h2 className="mt-2 text-2xl font-semibold tracking-tight">Digital Shadow Console</h2>
-      <p className="mt-2 text-xs text-muted">Consent-based identity intelligence platform</p>
+      <p className="mt-2 text-xs text-muted">Simple tools to understand and reduce your online exposure</p>
     </div>
   );
 }
