@@ -3,52 +3,52 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 
 const sections = [
   {
-    id: 'face',
+    id: 'photo-recognition',
     label: '01',
-    title: 'Find your public profiles from a photo',
+    title: 'Photo Recognition',
     description:
-      'Upload one photo and ShadowGraph checks public profile pages where your image or identity may appear. You get readable cards with links and confidence.',
-    bullets: ['Upload once, scan many public sources', 'See profile links and confidence in one place', 'Only ethical, public pages are checked'],
+      'Find your public profiles from a photo. Upload one image and get clear, ethical matches from publicly available profile pages.',
+    bullets: ['Public profile links only', 'Readable confidence indicators', 'Hover cards with quick previews'],
   },
   {
     id: 'username',
     label: '02',
-    title: 'Search people by name or handle',
+    title: 'Username Engine',
     description:
-      'Type a name or username. We try practical variations and show reachable links across social, coding, and research platforms.',
-    bullets: ['Supports full names and handles', 'Shows only reachable links', 'Useful for your own profile and external lookups'],
+      'Search by name or handle and discover where that identity appears online. Results are shown as clean cards with reachable links.',
+    bullets: ['Smart name variations', 'Platform-focused cards', 'Only reachable results shown'],
   },
   {
-    id: 'footprint',
+    id: 'digital-footprint',
     label: '03',
-    title: 'Discover your digital presence',
+    title: 'Digital Footprint Overview',
     description:
-      'Get a clean overview of where you appear online. Categories, platform counts, and profile cards are grouped for easy understanding.',
-    bullets: ['Social, coding, academic, and blog signals', 'Readable summary cards', 'Live updates as scans complete'],
+      'Discover your digital presence in one place. See categories, account counts, and visibility highlights with interactive visuals.',
+    bullets: ['Neon-highlighted summary charts', 'Live category breakdown', 'Simple, user-friendly insights'],
   },
   {
     id: 'research',
     label: '04',
-    title: 'Find your research publications',
+    title: 'Research Paper Detection',
     description:
-      'Search by full name, institution, or both. ShadowGraph highlights likely papers with source, year, and citation details.',
-    bullets: ['Name and institution matching', 'Publication cards with links', 'Built for quick verification'],
+      'Find likely papers by full name, institution, or both. Review titles, sources, years, and citations in clean, hoverable cards.',
+    bullets: ['Readable publication cards', 'Name + institution matching', 'Quick source links'],
   },
   {
-    id: 'insight',
+    id: 'reputation',
     label: '05',
-    title: 'Understand how visible you are online',
+    title: 'Reputation Insights',
     description:
-      'Reputation Insight turns raw scan data into practical next steps. You can quickly see strengths, gaps, and what to improve first.',
-    bullets: ['Simple visibility indicators', 'Actionable recommendations', 'Designed for non-technical users'],
+      'Understand how visible you are online with actionable tips. See what is strong, what is missing, and what to improve first.',
+    bullets: ['Visibility score panel', 'Action recommendations', 'Smooth animated indicators'],
   },
   {
     id: 'dashboard',
     label: '06',
-    title: 'Control everything from one dashboard',
+    title: 'Dashboard & Profile',
     description:
-      'Your profile, activity timeline, charts, and reports live in one immersive dashboard. It updates smoothly with every scan.',
-    bullets: ['Interactive profile and settings', 'Neon-highlighted charts and timeline', 'Export-ready reports'],
+      'Use one immersive dashboard for profile, charts, timeline, and reports. Smooth updates keep modules alive and easy to follow.',
+    bullets: ['Glassmorphic stat panels', 'Neon chart accents', 'Quick jump into live app'],
   },
 ];
 
@@ -123,27 +123,20 @@ export default function LandingPage() {
       <div className="cyber-grid pointer-events-none absolute inset-0 opacity-35" />
       <div className="particle-layer" />
 
-      <header className="relative z-10 mx-auto max-w-7xl py-4">
-        <p className="text-center text-sm tracking-[0.34em] text-[#00BFFF]">SHADOWGRAPH</p>
-      </header>
-
-      <section className="relative mx-auto flex min-h-[88vh] max-w-7xl items-center justify-center px-4 text-center">
+      <section className="relative mx-auto flex min-h-screen max-w-7xl items-center justify-center px-4 text-center">
         <div className="pointer-events-none absolute -top-20 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-[#00BFFF]/20 blur-3xl" />
         <div className="pointer-events-none absolute bottom-10 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-[#1ED760]/10 blur-3xl" />
 
-        <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }} className="relative z-10 max-w-5xl">
-          <h1 className="hero-glow text-5xl font-semibold tracking-tight text-text md:text-[64px] md:leading-[1.02]">
-            Understand your digital presence in one cinematic workspace
+        <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }} className="relative z-10 max-w-6xl">
+          <h1 className="hero-title hero-glow hero-pulse text-7xl font-black tracking-tight md:text-[120px] md:leading-[0.9]">
+            ShadowGraph
           </h1>
-          <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-muted md:text-lg">
-            ShadowGraph helps you find public profiles, review visibility, and take practical action. Built for clarity, speed, and real-world use.
+          <p className="hero-subtitle mx-auto mt-7 max-w-4xl text-xl leading-9 text-text/90 md:text-[30px] md:leading-[1.35]">
+            Explore your complete digital presence
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <Link to="/auth" className="sg-button-primary">
-              Start Your Scan
-            </Link>
-            <a href="#face" className="sg-button-secondary">
-              Explore Features
+            <a href="#photo-recognition" className="sg-button-primary px-8 py-4 text-base">
+              Get Started
             </a>
           </div>
         </motion.div>
@@ -156,13 +149,13 @@ export default function LandingPage() {
       </div>
 
       <section className="sg-section mx-auto mt-8 max-w-7xl px-6 py-10 text-center md:px-12 md:py-14">
-        <h3 className="text-3xl font-semibold tracking-tight text-text md:text-[36px]">Ready to map your digital shadow?</h3>
+        <h3 className="text-3xl font-semibold tracking-tight text-text md:text-[48px]">Ready to explore your digital presence?</h3>
         <p className="mx-auto mt-4 max-w-2xl text-base leading-8 text-muted">
-          Sign in, run scans, and see your full profile intelligence in the live dashboard.
+          Enter the live workspace and run your scans with full cinematic dashboards.
         </p>
         <div className="mt-7 flex flex-wrap justify-center gap-3">
           <Link to="/auth" className="sg-button-primary">
-            Go to Sign In
+            Enter ShadowGraph
           </Link>
           <Link to="/app/overview" className="sg-button-secondary">
             Open Dashboard

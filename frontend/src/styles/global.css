@@ -285,6 +285,23 @@ body.light {
     0 0 36px rgba(0, 191, 255, 0.2);
 }
 
+.hero-title {
+  font-family: 'SF Pro Display', 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  letter-spacing: -0.04em;
+  background: linear-gradient(90deg, #00bfff 5%, #1ed760 95%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-subtitle {
+  text-shadow: 0 0 18px rgba(0, 191, 255, 0.18);
+}
+
+.hero-pulse {
+  animation: heroPulse 3.6s ease-in-out infinite;
+}
+
 @keyframes shimmer {
   0% {
     background-position: 100% 0;
@@ -334,6 +351,20 @@ body.light {
   }
   100% {
     transform: translateY(72px);
+  }
+}
+
+@keyframes heroPulse {
+  0%,
+  100% {
+    text-shadow:
+      0 0 12px rgba(0, 191, 255, 0.42),
+      0 0 30px rgba(30, 215, 96, 0.12);
+  }
+  50% {
+    text-shadow:
+      0 0 18px rgba(0, 191, 255, 0.68),
+      0 0 44px rgba(30, 215, 96, 0.25);
   }
 }
 
