@@ -1,3 +1,5 @@
+import GlassCard from './GlassCard';
+
 const labels = ['Public Profiles', 'Research Visibility', 'Breach Exposure', 'Data Leak Indicators'];
 
 export default function RadarChart({ values = [72, 58, 40, 64] }) {
@@ -13,7 +15,7 @@ export default function RadarChart({ values = [72, 58, 40, 64] }) {
   const points = values.map((v, i) => point(v, i).join(',')).join(' ');
 
   return (
-    <div className="glass-card rounded-2xl p-6">
+    <GlassCard className="p-6">
       <h3 className="mb-4 text-lg font-semibold">Risk Breakdown</h3>
       <svg viewBox="0 0 260 260" className="mx-auto h-72 w-full max-w-sm">
         {[25, 50, 75, 100].map((ring) => {
@@ -33,6 +35,6 @@ export default function RadarChart({ values = [72, 58, 40, 64] }) {
         })}
         <polygon points={points} fill="rgba(59,130,246,0.35)" stroke="#22D3EE" strokeWidth="2" />
       </svg>
-    </div>
+    </GlassCard>
   );
 }

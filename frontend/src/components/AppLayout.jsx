@@ -8,10 +8,11 @@ export default function AppLayout() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   return (
-    <div className="min-h-screen px-4 py-4 text-text md:px-6">
-      <div className="mx-auto flex max-w-[1500px] gap-5">
+    <div className="relative min-h-screen px-4 py-4 text-text md:px-6">
+      <div className="particle-layer" />
+      <div className="mx-auto flex max-w-[1600px] gap-5">
         <Sidebar />
-        <main className="min-w-0 flex-1">
+        <main className="min-w-0 flex-1 pb-8">
           <Topbar onOpenMenu={() => setMobileNavOpen(true)} />
           <Outlet />
         </main>
@@ -23,7 +24,7 @@ export default function AppLayout() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/60 p-4 lg:hidden"
+            className="fixed inset-0 z-50 bg-black/70 p-4 lg:hidden"
             onClick={() => setMobileNavOpen(false)}
           >
             <motion.div
@@ -35,7 +36,7 @@ export default function AppLayout() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="mb-3 flex justify-end">
-                <button onClick={() => setMobileNavOpen(false)} className="rounded-lg border border-white/15 bg-surface/90 px-3 py-2 text-sm">
+                <button onClick={() => setMobileNavOpen(false)} className="sg-button-secondary px-3 py-2">
                   Close
                 </button>
               </div>

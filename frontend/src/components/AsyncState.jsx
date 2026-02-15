@@ -3,9 +3,9 @@ import GlassCard from './GlassCard';
 export function ErrorState({ message, onRetry, className = '' }) {
   return (
     <GlassCard className={`p-6 text-center ${className}`}>
-      <p className="text-sm text-red-300">{message}</p>
+      <p className="text-sm text-red-200">{message}</p>
       {onRetry ? (
-        <button onClick={onRetry} className="mt-3 rounded-xl bg-surface px-4 py-2 text-sm hover:border hover:border-cyan/30">
+        <button onClick={onRetry} className="sg-button-secondary mt-4 px-4 py-2">
           Retry
         </button>
       ) : null}
