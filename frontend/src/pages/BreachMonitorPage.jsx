@@ -40,15 +40,10 @@ export default function BreachMonitorPage() {
     <div>
       <PageHeader title="Breach Monitor" subtitle="Have I Been Pwned-compatible breach check workflow (mocked integration layer)." />
 
-      <GlassCard className="p-5">
+      <GlassCard className="p-5 md:p-6">
         <div className="flex flex-col gap-3 md:flex-row">
-          <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter email"
-            className="flex-1 rounded-xl border border-white/10 bg-surface px-4 py-3 text-sm outline-none transition focus:border-accent"
-          />
-          <button onClick={run} className="flex min-w-56 items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm font-medium">
+          <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter email" className="sg-input flex-1" />
+          <button onClick={run} className="sg-button-primary flex min-w-56 items-center justify-center gap-2">
             {loading ? <LoadingSpinner /> : null}
             Check Breach Exposure
           </button>
@@ -62,7 +57,9 @@ export default function BreachMonitorPage() {
           {rows.map((row) => (
             <GlassCard
               key={row.site}
-              className={`p-5 ${row.risk === 'high' ? 'border border-red-500/35 shadow-[0_0_24px_rgba(239,68,68,0.12)]' : 'border border-emerald-500/30'}`}
+              className={`p-5 ${
+                row.risk === 'high' ? 'border border-red-500/35 shadow-[0_0_24px_rgba(239,68,68,0.12)]' : 'border border-emerald-500/30'
+              }`}
             >
               <div className="flex items-start justify-between">
                 <h3 className="text-lg font-semibold">{row.site}</h3>

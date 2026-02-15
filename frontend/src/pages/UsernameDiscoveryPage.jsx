@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import PageHeader from '../components/PageHeader';
 import GlassCard from '../components/GlassCard';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -49,15 +50,10 @@ export default function UsernameDiscoveryPage() {
     <div>
       <PageHeader title="Username Discovery" subtitle="Search platform presence and profile footprint using alias-based correlation." />
 
-      <GlassCard className="p-5">
+      <GlassCard className="p-5 md:p-6">
         <div className="flex flex-col gap-3 md:flex-row">
-          <input
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Enter username"
-            className="flex-1 rounded-xl border border-white/10 bg-surface/80 px-4 py-3 text-sm outline-none transition focus:border-accent"
-          />
-          <button onClick={run} className="flex min-w-56 items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm font-medium">
+          <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Enter username" className="sg-input flex-1" />
+          <button onClick={run} className="sg-button-primary flex min-w-56 items-center justify-center gap-2">
             {loading ? <LoadingSpinner /> : null}
             Scan Across Platforms
           </button>
@@ -67,13 +63,21 @@ export default function UsernameDiscoveryPage() {
           <div className="h-full rounded-full bg-gradient-to-r from-accent to-cyan transition-all duration-300" style={{ width: `${progress}%` }} />
         </div>
 
+        <div className="mt-3 flex flex-wrap gap-2">
+          {['GitHub', 'LinkedIn', 'LeetCode', 'GeeksforGeeks'].map((platform) => (
+            <span key={platform} className="sg-chip">
+              {platform}
+            </span>
+          ))}
+        </div>
+
         {error ? <ErrorState className="mt-5" message={error} onRetry={run} /> : null}
 
         {!error ? (
-          <div className="mt-5 overflow-x-auto">
+          <div className="mt-5 overflow-x-auto rounded-xl border border-white/10 bg-surface/40 p-4">
             <table className="w-full min-w-[680px] text-left text-sm">
               <thead>
-                <tr className="border-b border-white/10 text-muted">
+                <tr className="sg-table-head">
                   <th className="pb-2">Platform</th>
                   <th className="pb-2">Username</th>
                   <th className="pb-2">Status</th>
@@ -81,13 +85,13 @@ export default function UsernameDiscoveryPage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row) => (
-                  <tr key={row.platform} className="border-b border-white/5">
+                {rows.map((row, idx) => (
+                  <motion.tr initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: idx * 0.03 }} key={row.platform} className="sg-table-row">
                     <td className="py-3">{row.platform}</td>
                     <td className="py-3">{row.username}</td>
                     <td className={`py-3 ${row.status === 'Found' ? 'text-cyan' : 'text-muted'}`}>{row.status}</td>
                     <td className="py-3">{row.link === '-' ? '-' : <a className="text-accent hover:underline" href={row.link}>{row.link}</a>}</td>
-                  </tr>
+                  </motion.tr>
                 ))}
               </tbody>
             </table>

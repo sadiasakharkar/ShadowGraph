@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import PageHeader from '../components/PageHeader';
 import GlassCard from '../components/GlassCard';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -47,15 +48,19 @@ export default function FaceScanPage({ fakeMode = false }) {
         }
       />
 
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-4 xl:grid-cols-[1.15fr_1fr]">
         <GlassCard className="p-5 md:p-6">
-          <p className="text-sm text-muted">Image Upload + Face Analysis</p>
+          <p className="sg-kicker">Image Intelligence</p>
           <div className="mt-4 flex h-72 items-center justify-center rounded-xl border border-dashed border-white/20 bg-surface/45 md:h-80">
-            {preview ? <img src={preview} alt="Face preview" className="h-full w-full rounded-xl object-cover" /> : <p className="text-sm text-muted">Upload image to start scan</p>}
+            {preview ? (
+              <img src={preview} alt="Face preview" className="h-full w-full rounded-xl object-cover" />
+            ) : (
+              <p className="text-sm text-muted">Upload image to start scan</p>
+            )}
           </div>
 
           <div className="mt-4 grid gap-2 md:grid-cols-2">
-            <label className="cursor-pointer rounded-xl border border-white/10 bg-surface/85 px-4 py-3 text-center text-sm transition hover:border-cyan/35">
+            <label className="sg-button-secondary cursor-pointer text-center">
               Upload Image
               <input
                 type="file"
@@ -70,11 +75,19 @@ export default function FaceScanPage({ fakeMode = false }) {
                 }}
               />
             </label>
-            <button onClick={runScan} disabled={loading} className="flex items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm font-medium">
+            <button onClick={runScan} disabled={loading} className="sg-button-primary flex items-center justify-center gap-2">
               {loading ? <LoadingSpinner /> : null}
               {loading ? 'Scanning...' : fakeMode ? 'Run Fake Detection' : 'Scan Face'}
             </button>
           </div>
+
+          <details className="mt-4 rounded-xl border border-white/10 bg-surface/60 p-4 text-sm text-muted">
+            <summary className="cursor-pointer text-text">Expand scan methodology</summary>
+            <p className="mt-3 leading-7">
+              The scan processes uploaded media, performs face analysis, then maps confidence indicators and anti-spoof outputs to a
+              structured response for rapid review.
+            </p>
+          </details>
         </GlassCard>
 
         <div>
@@ -90,7 +103,13 @@ export default function FaceScanPage({ fakeMode = false }) {
 
                   {result.matched_profiles.length ? (
                     result.matched_profiles.map((profile, idx) => (
-                      <div key={`${profile.platform}-${idx}`} className="rounded-xl border border-white/10 bg-surface/85 p-3">
+                      <motion.div
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        key={`${profile.platform}-${idx}`}
+                        className="rounded-xl border border-white/10 bg-surface/85 p-3"
+                      >
                         <div className="flex items-center justify-between">
                           <p className="text-sm">{profile.platform}</p>
                           <p className="text-sm text-cyan">{profile.confidence}%</p>
@@ -103,7 +122,7 @@ export default function FaceScanPage({ fakeMode = false }) {
                         <div className="mt-2 h-1.5 overflow-hidden rounded bg-white/10">
                           <div className="h-full rounded bg-gradient-to-r from-accent to-cyan" style={{ width: `${profile.confidence}%` }} />
                         </div>
-                      </div>
+                      </motion.div>
                     ))
                   ) : (
                     <div className="rounded-xl border border-white/10 bg-surface/85 p-3 text-sm text-muted">No gallery matches found.</div>

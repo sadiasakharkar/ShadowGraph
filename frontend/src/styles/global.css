@@ -114,7 +114,24 @@ body.light {
 }
 
 .sg-card {
-  @apply glass-card rounded-2xl;
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: linear-gradient(180deg, rgba(34, 35, 45, 0.74), rgba(20, 20, 28, 0.64));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.sg-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(125deg, rgba(255, 255, 255, 0.07), transparent 35%, transparent 70%, rgba(34, 211, 238, 0.08));
 }
 
 .sg-section {

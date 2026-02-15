@@ -80,70 +80,75 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4">
-      <div className="pointer-events-none absolute inset-0 grid-hero opacity-60" />
-      <motion.form
-        onSubmit={submit}
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="glass-card relative z-10 w-full max-w-md rounded-3xl p-7"
-      >
-        <p className="text-[11px] uppercase tracking-[0.25em] text-cyan">Secure Access</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">{mode === 'login' ? 'Welcome back' : 'Create your account'}</h1>
-        <p className="mt-2 text-sm text-muted">Authenticate to launch your digital footprint intelligence workspace.</p>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8">
+      <div className="grid-hero pointer-events-none absolute inset-0 opacity-70" />
+      <div className="particle-layer" />
 
-        <div className="mt-6 space-y-3">
-          <input
-            className={`w-full rounded-xl border bg-surface/85 px-4 py-3 text-sm outline-none transition ${
-              error ? 'border-red-400' : 'border-white/10 focus:border-accent'
-            }`}
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input
-            type="password"
-            className={`w-full rounded-xl border bg-surface/85 px-4 py-3 text-sm outline-none transition ${
-              error ? 'border-red-400' : 'border-white/10 focus:border-accent'
-            }`}
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          {error ? <p className="text-xs text-red-400">{error}</p> : null}
-          <button disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-3 text-sm font-medium">
-            {loading ? <LoadingSpinner /> : null}
-            {loading ? 'Authenticating...' : mode === 'login' ? 'Login' : 'Create Account'}
-          </button>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative z-10 w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-[#101018]/85 shadow-[0_30px_90px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
+        <div className="grid md:grid-cols-[1.1fr_0.9fr]">
+          <div className="relative border-b border-white/10 p-7 md:border-b-0 md:border-r md:p-10">
+            <div className="pointer-events-none absolute -top-10 left-0 h-40 w-40 rounded-full bg-accent/20 blur-3xl" />
+            <p className="sg-kicker">ShadowGraph Access</p>
+            <h1 className="mt-5 text-4xl font-semibold tracking-tight md:text-5xl">Secure your identity intelligence workspace</h1>
+            <p className="mt-5 text-sm leading-7 text-muted md:text-base">
+              Authenticate to launch cinematic dashboard views, run module scans, and manage your personalized risk monitoring profile.
+            </p>
+            <div className="mt-8 grid gap-3">
+              {['Consent-first workflows', 'Professional-grade visibility', 'Cross-module evidence trail'].map((item) => (
+                <div key={item} className="rounded-xl border border-white/10 bg-surface/60 px-4 py-3 text-sm text-muted">
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <motion.form onSubmit={submit} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} className="p-7 md:p-10">
+            <p className="sg-kicker">{mode === 'login' ? 'Returning User' : 'New Operator'}</p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-tight">{mode === 'login' ? 'Welcome back' : 'Create account'}</h2>
+            <p className="mt-2 text-sm text-muted">Use credentials or trusted OAuth providers.</p>
+
+            <div className="mt-6 space-y-3">
+              <input
+                className={`sg-input ${error ? 'border-red-400/60' : ''}`}
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <input
+                type="password"
+                className={`sg-input ${error ? 'border-red-400/60' : ''}`}
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              {error ? <p className="text-xs text-red-300">{error}</p> : null}
+              <button disabled={loading} className="sg-button-primary flex w-full items-center justify-center gap-2">
+                {loading ? <LoadingSpinner /> : null}
+                {loading ? 'Authenticating...' : mode === 'login' ? 'Login' : 'Create Account'}
+              </button>
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button type="button" onClick={() => startOAuth('google')} className="sg-button-secondary px-3 py-2.5 text-sm">
+                {oauthLoading === 'google' ? 'Redirecting...' : 'Google'}
+              </button>
+              <button type="button" onClick={() => startOAuth('github')} className="sg-button-secondary px-3 py-2.5 text-sm">
+                {oauthLoading === 'github' ? 'Redirecting...' : 'GitHub'}
+              </button>
+            </div>
+
+            <p className="mt-4 text-sm text-muted">
+              {mode === 'login' ? 'No account?' : 'Already registered?'}{' '}
+              <button type="button" className="text-cyan hover:text-accent" onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}>
+                {mode === 'login' ? 'Sign up' : 'Login'}
+              </button>
+            </p>
+            <Link to="/" className="mt-2 block text-xs text-muted hover:text-text">
+              Back to landing
+            </Link>
+          </motion.form>
         </div>
-
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => startOAuth('google')}
-            className="rounded-xl border border-white/10 bg-surface py-2.5 text-sm transition hover:border-cyan/35"
-          >
-            {oauthLoading === 'google' ? 'Redirecting...' : 'Continue with Google'}
-          </button>
-          <button
-            type="button"
-            onClick={() => startOAuth('github')}
-            className="rounded-xl border border-white/10 bg-surface py-2.5 text-sm transition hover:border-cyan/35"
-          >
-            {oauthLoading === 'github' ? 'Redirecting...' : 'Continue with GitHub'}
-          </button>
-        </div>
-
-        <p className="mt-4 text-sm text-muted">
-          {mode === 'login' ? 'No account?' : 'Already registered?'}{' '}
-          <button type="button" className="text-cyan hover:text-accent" onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}>
-            {mode === 'login' ? 'Sign up' : 'Login'}
-          </button>
-        </p>
-        <Link to="/" className="mt-2 block text-xs text-muted hover:text-text">
-          Back to landing
-        </Link>
-      </motion.form>
+      </motion.div>
     </div>
   );
 }

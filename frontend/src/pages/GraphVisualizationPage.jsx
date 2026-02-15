@@ -97,7 +97,7 @@ export default function GraphVisualizationPage() {
           </GlassCard>
 
           <GlassCard className="p-5">
-            <p className="text-[11px] uppercase tracking-[0.22em] text-cyan">Live Graph Intel</p>
+            <p className="sg-kicker">Live Graph Intel</p>
             <h3 className="mt-2 text-xl font-semibold">{active.label}</h3>
             <p className="mt-2 text-sm text-muted">{active.detail}</p>
             <div className="mt-5 rounded-xl border border-white/10 bg-surface/75 p-3 text-sm text-muted">

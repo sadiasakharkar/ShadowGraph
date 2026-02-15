@@ -106,36 +106,25 @@ export default function OpsDashboardPage() {
       <div className="grid gap-4 xl:grid-cols-2">
         <GlassCard className="p-5">
           <h3 className="text-lg font-semibold">Queue & Scheduler</h3>
-          <textarea
-            value={seedUrl}
-            onChange={(e) => setSeedUrl(e.target.value)}
-            rows={3}
-            className="mt-3 w-full rounded-xl border border-white/10 bg-surface px-3 py-2 text-sm outline-none"
-          />
-          <input
-            value={keywords}
-            onChange={(e) => setKeywords(e.target.value)}
-            className="mt-2 w-full rounded-xl border border-white/10 bg-surface px-3 py-2 text-sm outline-none"
-          />
+          <textarea value={seedUrl} onChange={(e) => setSeedUrl(e.target.value)} rows={3} className="sg-textarea mt-3" />
+          <input value={keywords} onChange={(e) => setKeywords(e.target.value)} className="sg-input mt-2" />
           <div className="mt-2 flex items-center gap-2">
-            <input
-              type="number"
-              min={5}
-              value={intervalMinutes}
-              onChange={(e) => setIntervalMinutes(e.target.value)}
-              className="w-32 rounded-xl border border-white/10 bg-surface px-3 py-2 text-sm outline-none"
-            />
+            <input type="number" min={5} value={intervalMinutes} onChange={(e) => setIntervalMinutes(e.target.value)} className="sg-input w-32" />
             <span className="text-xs text-muted">minutes</span>
           </div>
           <div className="mt-3 flex gap-2">
-            <button onClick={onEnqueueJob} className="rounded-xl bg-accent px-3 py-2 text-sm font-medium">Queue Job</button>
-            <button onClick={onCreateSchedule} className="rounded-xl bg-surface px-3 py-2 text-sm">Create Schedule</button>
+            <button onClick={onEnqueueJob} className="sg-button-primary px-3 py-2 text-sm font-medium">
+              Queue Job
+            </button>
+            <button onClick={onCreateSchedule} className="sg-button-secondary px-3 py-2 text-sm">
+              Create Schedule
+            </button>
           </div>
         </GlassCard>
 
         <GlassCard className="p-5">
           <h3 className="text-lg font-semibold">Active Schedules</h3>
-          <div className="mt-3 space-y-2 max-h-56 overflow-auto">
+          <div className="mt-3 max-h-56 space-y-2 overflow-auto">
             {schedules.map((schedule) => (
               <div key={schedule.schedule_id} className="rounded-xl border border-white/10 bg-surface/70 p-3 text-xs">
                 <p className="text-text">{schedule.schedule_id}</p>

@@ -52,32 +52,26 @@ export default function ScrapeAggregationPage() {
         subtitle="Crawl seed URLs, extract signals, and aggregate keywords/emails across discovered pages."
       />
 
-      <GlassCard className="p-5">
+      <GlassCard className="p-5 md:p-6">
         <div className="grid gap-3 xl:grid-cols-2">
           <div>
-            <label className="text-xs text-muted">Seed URLs (one per line)</label>
-            <textarea
-              value={seedUrlsInput}
-              onChange={(e) => setSeedUrlsInput(e.target.value)}
-              rows={6}
-              className="mt-2 w-full rounded-xl border border-white/10 bg-surface px-3 py-2 text-sm outline-none"
-            />
+            <label className="text-xs uppercase tracking-[0.16em] text-muted">Seed URLs (one per line)</label>
+            <textarea value={seedUrlsInput} onChange={(e) => setSeedUrlsInput(e.target.value)} rows={7} className="sg-textarea mt-2" />
           </div>
           <div>
-            <label className="text-xs text-muted">Keywords (comma-separated)</label>
-            <textarea
-              value={keywordsInput}
-              onChange={(e) => setKeywordsInput(e.target.value)}
-              rows={6}
-              className="mt-2 w-full rounded-xl border border-white/10 bg-surface px-3 py-2 text-sm outline-none"
-            />
+            <label className="text-xs uppercase tracking-[0.16em] text-muted">Keywords (comma-separated)</label>
+            <textarea value={keywordsInput} onChange={(e) => setKeywordsInput(e.target.value)} rows={7} className="sg-textarea mt-2" />
           </div>
         </div>
 
-        <button onClick={run} disabled={loading} className="mt-4 flex items-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm font-medium">
-          {loading ? <LoadingSpinner /> : null}
-          Run Scrape Pipeline
-        </button>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <button onClick={run} disabled={loading} className="sg-button-primary flex items-center gap-2">
+            {loading ? <LoadingSpinner /> : null}
+            Run Scrape Pipeline
+          </button>
+          <span className="sg-chip">Crawl Orchestration</span>
+          <span className="sg-chip">Aggregate Signals</span>
+        </div>
       </GlassCard>
 
       {error ? <ErrorState className="mt-4" message={error} onRetry={run} /> : null}
@@ -86,9 +80,11 @@ export default function ScrapeAggregationPage() {
         <div className="mt-4 grid gap-4 xl:grid-cols-2">
           <GlassCard className="p-5">
             <h3 className="text-lg font-semibold">Aggregates</h3>
-            <p className="mt-2 text-sm text-muted">Pages scraped: {result.aggregates.pages_scraped}</p>
-            <p className="text-sm text-muted">Unique links: {result.aggregates.unique_links}</p>
-            <p className="text-sm text-muted">Emails found: {result.aggregates.emails_found.length}</p>
+            <div className="mt-3 grid gap-2 text-sm text-muted">
+              <p>Pages scraped: {result.aggregates.pages_scraped}</p>
+              <p>Unique links: {result.aggregates.unique_links}</p>
+              <p>Emails found: {result.aggregates.emails_found.length}</p>
+            </div>
             <div className="mt-3 rounded-xl border border-white/10 bg-surface/70 p-3 text-xs text-muted">
               {Object.entries(result.aggregates.keyword_totals || {}).map(([k, v]) => (
                 <p key={k}>

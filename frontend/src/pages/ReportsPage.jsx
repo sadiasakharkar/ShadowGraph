@@ -56,11 +56,11 @@ export default function ReportsPage() {
       <PageHeader
         title="Reports"
         subtitle="Export PDF reports and review recent intelligence event history."
-        actions={(
-          <button onClick={onExport} disabled={exporting} className="rounded-xl bg-accent px-4 py-2 text-sm font-medium">
+        actions={
+          <button onClick={onExport} disabled={exporting} className="sg-button-primary px-4 py-2 text-sm">
             {exporting ? 'Exporting...' : 'Export PDF'}
           </button>
-        )}
+        }
       />
 
       {error ? <ErrorState message={error} onRetry={load} /> : null}
@@ -72,10 +72,10 @@ export default function ReportsPage() {
 
       {!loading && !error && events.length ? (
         <GlassCard className="p-5">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-xl border border-white/10 bg-surface/40 p-4">
             <table className="w-full min-w-[720px] text-left text-sm">
               <thead>
-                <tr className="border-b border-white/10 text-muted">
+                <tr className="sg-table-head">
                   <th className="pb-2">Time</th>
                   <th className="pb-2">Type</th>
                   <th className="pb-2">Status</th>
@@ -84,7 +84,7 @@ export default function ReportsPage() {
               </thead>
               <tbody>
                 {events.map((event) => (
-                  <tr key={event.id} className="border-b border-white/5">
+                  <tr key={event.id} className="sg-table-row">
                     <td className="py-3 text-xs text-muted">{event.created_at}</td>
                     <td className="py-3">{event.scan_type}</td>
                     <td className="py-3">{event.summary?.status || '-'}</td>
