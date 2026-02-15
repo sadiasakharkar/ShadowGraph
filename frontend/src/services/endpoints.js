@@ -45,9 +45,9 @@ export async function scanUsername(username) {
 
     return rows.map((row) => ({
       platform: row.platform,
-      username,
+      username: row.username || username,
       status: row.status,
-      link: row.status === 'Found' ? row.profile_url || profileLink(row.platform, username) : '-'
+      link: row.status === 'Found' ? row.profile_url || profileLink(row.platform, row.username || username) : '-'
     }));
   } catch (error) {
     throw normalizeApiError(error, 'Failed to scan username across platforms.');

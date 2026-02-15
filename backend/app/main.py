@@ -209,14 +209,15 @@ class OAuthExchangeRequest(BaseModel):
 
 
 class UsernameRequest(BaseModel):
-    username: str = Field(..., min_length=2, max_length=40)
+    username: str = Field(..., min_length=2, max_length=120)
 
     @field_validator('username')
     @classmethod
     def validate_username(cls, value: str) -> str:
-        if not USERNAME_REGEX.fullmatch(value):
-            raise ValueError('Username must be 2-40 characters and contain only letters, numbers, ., _, -')
-        return value
+        cleaned = re.sub(r'\s+', ' ', (value or '').strip())
+        if len(cleaned) < 2:
+            raise ValueError('Enter at least 2 characters')
+        return cleaned
 
 
 class ResearchRequest(BaseModel):
@@ -999,6 +1000,7 @@ async def _probe_platform(client: httpx.AsyncClient, platform: dict[str, str], u
 
         return {
             'platform': platform['name'],
+            'username': username,
             'status': status_name,
             'profile_url': url,
             'http_status': response.status_code,
@@ -1007,6 +1009,7 @@ async def _probe_platform(client: httpx.AsyncClient, platform: dict[str, str], u
     except httpx.TimeoutException:
         return {
             'platform': platform['name'],
+            'username': username,
             'status': 'Unknown',
             'profile_url': url,
             'http_status': 0,
@@ -1016,6 +1019,7 @@ async def _probe_platform(client: httpx.AsyncClient, platform: dict[str, str], u
     except httpx.HTTPError:
         return {
             'platform': platform['name'],
+            'username': username,
             'status': 'Unknown',
             'profile_url': url,
             'http_status': 0,
@@ -1024,12 +1028,65 @@ async def _probe_platform(client: httpx.AsyncClient, platform: dict[str, str], u
         }
 
 
+def _username_variants(raw_username: str) -> list[str]:
+    normalized = re.sub(r'\s+', ' ', raw_username.strip().lower())
+    if not normalized:
+        return []
+
+    parts = [re.sub(r'[^a-z0-9._-]', '', p) for p in normalized.split(' ') if p]
+    parts = [p for p in parts if p]
+    if not parts:
+        return []
+
+    variants: list[str] = []
+    joined = ''.join(parts)
+    if joined:
+        variants.append(joined)
+
+    if len(parts) >= 2:
+        variants.extend(
+            [
+                '.'.join(parts),
+                '_'.join(parts),
+                '-'.join(parts),
+                ''.join(reversed(parts)),
+                '.'.join(reversed(parts)),
+                '_'.join(reversed(parts)),
+                '-'.join(reversed(parts)),
+            ]
+        )
+
+    # Keep already username-like raw input too.
+    raw_compact = re.sub(r'[^a-z0-9._-]', '', normalized)
+    if raw_compact:
+        variants.append(raw_compact)
+
+    unique: list[str] = []
+    seen: set[str] = set()
+    for variant in variants:
+        if not variant:
+            continue
+        if len(variant) < 2 or len(variant) > 40:
+            continue
+        if not USERNAME_REGEX.fullmatch(variant):
+            continue
+        if variant in seen:
+            continue
+        seen.add(variant)
+        unique.append(variant)
+    return unique[:12]
+
+
 @app.post('/scan-username')
 async def scan_username(
     payload: UsernameRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict[str, Any]:
+    variants = _username_variants(payload.username)
+    if not variants:
+        raise HTTPException(status_code=422, detail='Could not generate valid username variants from input')
+
     started = time.perf_counter()
     async with httpx.AsyncClient(
         timeout=8,
@@ -1038,13 +1095,34 @@ async def scan_username(
             'User-Agent': 'Mozilla/5.0 (compatible; ShadowGraph/0.3; +https://shadowgraph.local)'
         },
     ) as client:
-        results = await asyncio.gather(*[_probe_platform(client, p, payload.username) for p in PLATFORMS])
+        probes = [
+            _probe_platform(client, platform, variant)
+            for platform in PLATFORMS
+            for variant in variants
+        ]
+        probed = await asyncio.gather(*probes)
+
+    # Pick best candidate per platform: Found > Not Found > Unknown, then lower latency.
+    score = {'Found': 3, 'Not Found': 2, 'Rate Limited': 1, 'Unknown': 0}
+    grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in probed:
+        grouped[row['platform']].append(row)
+
+    results: list[dict[str, Any]] = []
+    for platform in PLATFORMS:
+        candidates = grouped.get(platform['name'], [])
+        if not candidates:
+            continue
+        candidates.sort(key=lambda r: (score.get(r['status'], 0), -(r['response_ms'] if r['response_ms'] >= 0 else 999999)), reverse=True)
+        best = candidates[0]
+        results.append(best)
 
     duration_ms = int((time.perf_counter() - started) * 1000)
     found_count = sum(1 for result in results if result['status'] == 'Found')
 
     response_payload = {
         'username': payload.username,
+        'username_variants_checked': variants,
         'results': results,
         'summary': {
             'total_platforms': len(results),
