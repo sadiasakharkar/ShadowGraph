@@ -11,6 +11,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode, urljoin, urlparse
+import threading
 
 import cv2
 import face_recognition
@@ -72,6 +73,8 @@ DATABASE_URL = f'sqlite:///{DB_PATH}'
 engine = create_engine(DATABASE_URL, connect_args={'check_same_thread': False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+_schema_lock = threading.Lock()
+_schema_ready = False
 
 # Use PBKDF2-SHA256 for cross-platform stability (avoids bcrypt backend issues on some Python/macOS builds).
 pwd_context = CryptContext(schemes=['pbkdf2_sha256'], deprecated='auto')
@@ -290,11 +293,23 @@ class ScrapeScheduleRequest(BaseModel):
 
 
 def get_db() -> Session:
+    ensure_schema()
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
+
+def ensure_schema() -> None:
+    global _schema_ready
+    if _schema_ready:
+        return
+    with _schema_lock:
+        if _schema_ready:
+            return
+        Base.metadata.create_all(bind=engine)
+        _schema_ready = True
 
 
 def hash_password(password: str) -> str:
@@ -513,7 +528,7 @@ def _ensure_user_settings(db: Session, user: User) -> UserSetting:
 @app.on_event('startup')
 def startup() -> None:
     # Ensure local SQLite schema exists for first-run and after db cleanup.
-    Base.metadata.create_all(bind=engine)
+    ensure_schema()
     FACE_GALLERY_DIR.mkdir(parents=True, exist_ok=True)
     if not FACE_GALLERY_META.exists():
         FACE_GALLERY_META.write_text('[]\n', encoding='utf-8')
