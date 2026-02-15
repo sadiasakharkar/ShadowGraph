@@ -1021,7 +1021,7 @@ async def _build_online_presence(query_encodings: list[np.ndarray], search_hint:
                     resp = await client.get(url)
                 except httpx.HTTPError:
                     continue
-                if resp.status_code >= 400:
+                if resp.status_code >= 400 or _looks_unreachable_profile(resp):
                     continue
                 preview = _extract_profile_preview(url, resp.text)
                 face_confidence = None
@@ -1126,7 +1126,7 @@ async def _probe_platform(client: httpx.AsyncClient, platform: dict[str, str], u
         response = await client.get(url)
         elapsed_ms = int((time.perf_counter() - started) * 1000)
 
-        if response.status_code in (200, 301, 302):
+        if response.status_code in (200, 301, 302) and not _looks_unreachable_profile(response):
             status_name = 'Found'
         elif response.status_code == 404:
             status_name = 'Not Found'
@@ -1629,6 +1629,37 @@ def _extract_links(base_url: str, soup: BeautifulSoup) -> list[str]:
         if parsed.scheme in ('http', 'https') and parsed.netloc:
             links.append(absolute)
     return links
+
+
+def _looks_unreachable_profile(response: httpx.Response) -> bool:
+    if response.status_code >= 400:
+        return True
+
+    text = (response.text or '').lower()
+    title = ''
+    try:
+        soup = BeautifulSoup(response.text or '', 'html.parser')
+        title = _normalize_text(soup.title.string if soup.title and soup.title.string else '').lower()
+    except Exception:
+        title = ''
+
+    combined = f'{title} {text[:4000]}'
+    unreachable_markers = [
+        'page not found',
+        '404',
+        'profile not found',
+        'user not found',
+        'account not found',
+        'this page does not exist',
+        "this page doesn't exist",
+        'doesn’t exist',
+        'could not find',
+        'no results found',
+        'sorry, this page isn',
+        'profile unavailable',
+        'resource not found',
+    ]
+    return any(marker in combined for marker in unreachable_markers)
 
 
 async def _run_scrape_pipeline(payload: ScrapeAggregateRequest) -> dict[str, Any]:
