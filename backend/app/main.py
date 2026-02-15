@@ -14,7 +14,6 @@ from urllib.parse import quote_plus, urlencode, urljoin, urlparse
 import threading
 
 import cv2
-import face_recognition
 import httpx
 import numpy as np
 from bs4 import BeautifulSoup
@@ -43,6 +42,10 @@ try:
     from deepface import DeepFace
 except Exception:  # pragma: no cover
     DeepFace = None
+try:
+    import face_recognition
+except Exception:  # pragma: no cover
+    face_recognition = None
 
 app = FastAPI(title='ShadowGraph API', version='0.3.0')
 logger = logging.getLogger('shadowgraph')
@@ -814,6 +817,8 @@ def _detect_faces_cv(image: np.ndarray) -> list[tuple[int, int, int, int]]:
 
 
 def _load_query_face_encodings(image_bytes: bytes) -> list[np.ndarray]:
+    if face_recognition is None:
+        return []
     array = face_recognition.load_image_file(io.BytesIO(image_bytes))
     locations = face_recognition.face_locations(array, model='hog')
     if not locations:
@@ -822,6 +827,8 @@ def _load_query_face_encodings(image_bytes: bytes) -> list[np.ndarray]:
 
 
 def _load_gallery_items() -> list[dict[str, Any]]:
+    if face_recognition is None:
+        return []
     if not FACE_GALLERY_META.exists():
         return []
 
@@ -992,7 +999,7 @@ def _extract_profile_preview(url: str, html: str) -> dict[str, str]:
 
 
 def _face_match_confidence(query_encodings: list[np.ndarray], candidate_image_bytes: bytes) -> int | None:
-    if not query_encodings:
+    if face_recognition is None or not query_encodings:
         return None
     try:
         image = face_recognition.load_image_file(io.BytesIO(candidate_image_bytes))
