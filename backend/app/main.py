@@ -10,7 +10,7 @@ from collections import defaultdict, deque
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlencode, urljoin, urlparse
+from urllib.parse import quote_plus, urlencode, urljoin, urlparse
 import threading
 
 import cv2
@@ -131,6 +131,16 @@ PLATFORMS = [
     {'name': 'GitHub Pages', 'url_template': 'https://{username}.github.io', 'category': 'Blogs'},
     {'name': 'Personal .com Site', 'url_template': 'https://{username}.com', 'category': 'Blogs'},
     {'name': 'Personal .org Site', 'url_template': 'https://{username}.org', 'category': 'Blogs'},
+]
+
+NAME_SEARCH_PLATFORMS = [
+    {'name': 'GitHub', 'query_url_template': 'https://github.com/search?q={query}&type=users', 'category': 'Coding'},
+    {'name': 'LinkedIn', 'query_url_template': 'https://www.linkedin.com/search/results/people/?keywords={query}', 'category': 'Social'},
+    {'name': 'Stack Overflow', 'query_url_template': 'https://stackoverflow.com/users?tab=Reputation&filter=all&search={query}', 'category': 'Coding'},
+    {'name': 'X (Twitter)', 'query_url_template': 'https://x.com/search?q={query}&src=typed_query&f=user', 'category': 'Social'},
+    {'name': 'Medium', 'query_url_template': 'https://medium.com/search/users?q={query}', 'category': 'Social'},
+    {'name': 'ResearchGate', 'query_url_template': 'https://www.researchgate.net/search/publication?q={query}', 'category': 'Academic'},
+    {'name': 'IEEE Xplore', 'query_url_template': 'https://ieeexplore.ieee.org/search/searchresult.jsp?newsearch=true&queryText={query}', 'category': 'Academic'},
 ]
 
 RATE_LIMITS = {
@@ -1161,6 +1171,35 @@ async def _probe_platform(client: httpx.AsyncClient, platform: dict[str, str], u
         }
 
 
+async def _probe_name_search_links(client: httpx.AsyncClient, raw_name: str) -> list[dict[str, Any]]:
+    query = quote_plus(raw_name.strip())
+    if not query:
+        return []
+    rows: list[dict[str, Any]] = []
+    for platform in NAME_SEARCH_PLATFORMS:
+        url = platform['query_url_template'].format(query=query)
+        started = time.perf_counter()
+        try:
+            response = await client.get(url)
+            elapsed_ms = int((time.perf_counter() - started) * 1000)
+            if response.status_code >= 400:
+                continue
+            rows.append(
+                {
+                    'platform': platform['name'],
+                    'username': raw_name.strip(),
+                    'status': 'Found',
+                    'profile_url': url,
+                    'http_status': response.status_code,
+                    'response_ms': elapsed_ms,
+                    'match_type': 'name_search',
+                }
+            )
+        except httpx.HTTPError:
+            continue
+    return rows
+
+
 def _username_variants(raw_username: str) -> list[str]:
     normalized = re.sub(r'\s+', ' ', raw_username.strip().lower())
     if not normalized:
@@ -1235,6 +1274,10 @@ async def scan_username(
         ]
         probed = await asyncio.gather(*probes)
 
+        name_search_rows: list[dict[str, Any]] = []
+        if ' ' in payload.username.strip():
+            name_search_rows = await _probe_name_search_links(client, payload.username)
+
     # Pick best candidate per platform: Found > Not Found > Unknown, then lower latency.
     score = {'Found': 3, 'Not Found': 2, 'Rate Limited': 1, 'Unknown': 0}
     grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -1258,6 +1301,14 @@ async def scan_username(
         and isinstance(row.get('profile_url'), str)
         and row.get('profile_url', '').startswith(('http://', 'https://'))
     ]
+
+    if name_search_rows:
+        seen_links = {row['profile_url'] for row in found_results if row.get('profile_url')}
+        for row in name_search_rows:
+            if row['profile_url'] in seen_links:
+                continue
+            found_results.append(row)
+            seen_links.add(row['profile_url'])
 
     duration_ms = int((time.perf_counter() - started) * 1000)
     found_count = len(found_results)
@@ -1924,6 +1975,24 @@ def _build_footprint_summary(db: Session, current_user: User) -> dict[str, Any]:
     for event in events:
         payload = _safe_json(event.payload_json)
         if event.scan_type == 'username_scan':
+            queried_value = str(payload.get('username', '')).strip()
+            if queried_value:
+                q_norm = re.sub(r'[^a-z0-9]', '', queried_value.lower())
+                email_local = current_user.email.split('@')[0].lower()
+                name_norm = re.sub(r'[^a-z0-9]', '', (current_user.name or '').lower())
+                email_norm = re.sub(r'[^a-z0-9]', '', email_local)
+                reversed_name = ' '.join(reversed((current_user.name or '').split()))
+                reversed_name_norm = re.sub(r'[^a-z0-9]', '', reversed_name.lower())
+                token_overlap = set(_tokenize_name(queried_value)) & set(_tokenize_name(f'{current_user.name} {email_local}'))
+                is_self_query = (
+                    q_norm in {name_norm, email_norm, reversed_name_norm}
+                    or (q_norm and (q_norm in name_norm or q_norm in email_norm))
+                    or len(token_overlap) >= 2
+                )
+            else:
+                is_self_query = False
+            if not is_self_query:
+                continue
             for row in payload.get('results', []):
                 if row.get('status') != 'Found':
                     continue
