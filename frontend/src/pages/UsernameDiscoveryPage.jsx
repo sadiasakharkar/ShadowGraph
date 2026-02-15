@@ -61,7 +61,7 @@ export default function UsernameDiscoveryPage({ embedded = false }) {
 
       <GlassCard className="p-5 md:p-6">
         <div className="flex flex-col gap-3 md:flex-row">
-          <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Enter username or full name (e.g., Saadya Sakharkar)" className="sg-input flex-1" />
+          <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Enter username or full name (e.g., John Doe)" className="sg-input flex-1" />
           <button onClick={run} className="sg-button-primary flex min-w-56 items-center justify-center gap-2">
             {loading ? <LoadingSpinner /> : null}
             Scan Across Platforms

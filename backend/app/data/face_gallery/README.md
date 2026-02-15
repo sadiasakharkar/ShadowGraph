@@ -7,13 +7,13 @@ Example `metadata.json`:
 ```json
 [
   {
-    "name": "Jane Doe",
+    "name": "John Doe",
     "platform": "LinkedIn",
     "profile_url": "https://linkedin.com/in/janedoe",
     "image": "janedoe.jpg"
   },
   {
-    "name": "Jane Doe",
+    "name": "John Doe",
     "platform": "GitHub",
     "profile_url": "https://github.com/janedoe",
     "image": "janedoe_github.jpg"

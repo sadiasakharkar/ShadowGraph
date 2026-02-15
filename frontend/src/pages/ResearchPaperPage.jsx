@@ -49,7 +49,7 @@ export default function ResearchPaperPage({ embedded = false }) {
           If full name is provided, results are now filtered to matching author names.
         </p>
         <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full Name (e.g., Saadya Sakharkar)" className="sg-input" />
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full Name (e.g., John Doe)" className="sg-input" />
           <input value={institution} onChange={(e) => setInstitution(e.target.value)} placeholder="Institution (optional)" className="sg-input" />
           <button onClick={run} className="sg-button-primary flex items-center justify-center gap-2">
             {loading ? <LoadingSpinner /> : null}
