@@ -11,6 +11,7 @@ npm run dev
 ## Environment
 
 - `VITE_API_BASE_URL` (default `http://localhost:8000`)
+- `VITE_OAUTH_REDIRECT_URI` (default `<origin>/auth`, example `http://localhost:5173/auth`)
 
 ## Integrated Pages
 

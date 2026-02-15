@@ -18,6 +18,7 @@ export default function AuthPage() {
   const { signIn } = useAuth();
 
   const redirectTo = location.state?.from || '/app/overview';
+  const oauthRedirectUri = import.meta.env.VITE_OAUTH_REDIRECT_URI || `${window.location.origin}/auth`;
 
   useEffect(() => {
     const search = new URLSearchParams(location.search);
@@ -25,16 +26,30 @@ export default function AuthPage() {
     const state = search.get('state');
     const provider = search.get('provider') || search.get('oauth');
 
-    if (!code || !state || !provider) {
+    if (!code || !state) {
       return;
     }
 
     const completeOAuth = async () => {
       try {
-        setOauthLoading(provider);
+        setOauthLoading(provider || 'oauth');
         setError('');
-        const redirectUri = `${window.location.origin}/auth?provider=${provider}`;
-        const result = await exchangeOAuthCode({ provider, code, state, redirectUri });
+        let result = null;
+        const providersToTry = provider ? [provider] : ['google', 'github'];
+
+        for (const p of providersToTry) {
+          try {
+            result = await exchangeOAuthCode({ provider: p, code, state, redirectUri: oauthRedirectUri });
+            break;
+          } catch {
+            // Try next provider if callback does not include provider.
+          }
+        }
+
+        if (!result) {
+          throw new Error('OAuth callback could not be validated. Check redirect URI configuration.');
+        }
+
         await signIn({ email: result.user.email, password: 'oauth-session', mode: 'login', directSession: result });
         navigate(redirectTo, { replace: true });
       } catch (err) {
@@ -45,7 +60,7 @@ export default function AuthPage() {
     };
 
     completeOAuth();
-  }, [location.search]);
+  }, [location.search, oauthRedirectUri, navigate, redirectTo, signIn]);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -70,8 +85,7 @@ export default function AuthPage() {
     try {
       setError('');
       setOauthLoading(provider);
-      const redirectUri = `${window.location.origin}/auth?provider=${provider}`;
-      const { auth_url } = await getOAuthStartUrl(provider, redirectUri);
+      const { auth_url } = await getOAuthStartUrl(provider, oauthRedirectUri);
       window.location.href = auth_url;
     } catch (err) {
       setError(getDisplayError(err, `Unable to start ${provider} OAuth.`));
