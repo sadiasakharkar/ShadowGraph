@@ -20,6 +20,23 @@ export default function AuthPage() {
   const redirectTo = location.state?.from || '/app/overview';
   const oauthRedirectUri = import.meta.env.VITE_OAUTH_REDIRECT_URI || `${window.location.origin}/auth`;
 
+  const decodeOAuthState = (stateToken) => {
+    try {
+      const parts = stateToken.split('.');
+      if (parts.length < 2) return null;
+      const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const json = decodeURIComponent(
+        atob(payload)
+          .split('')
+          .map((c) => `%${(`00${c.charCodeAt(0).toString(16)}`).slice(-2)}`)
+          .join('')
+      );
+      return JSON.parse(json);
+    } catch {
+      return null;
+    }
+  };
+
   useEffect(() => {
     const search = new URLSearchParams(location.search);
     const code = search.get('code');
@@ -32,23 +49,24 @@ export default function AuthPage() {
 
     const completeOAuth = async () => {
       try {
-        setOauthLoading(provider || 'oauth');
+        const statePayload = decodeOAuthState(state);
+        const providerFromState = statePayload?.provider;
+        const redirectUriFromState = statePayload?.redirect_uri;
+        const resolvedProvider = provider || providerFromState;
+        const resolvedRedirectUri = redirectUriFromState || oauthRedirectUri;
+
+        setOauthLoading(resolvedProvider || 'oauth');
         setError('');
-        let result = null;
-        const providersToTry = provider ? [provider] : ['google', 'github'];
-
-        for (const p of providersToTry) {
-          try {
-            result = await exchangeOAuthCode({ provider: p, code, state, redirectUri: oauthRedirectUri });
-            break;
-          } catch {
-            // Try next provider if callback does not include provider.
-          }
+        if (!resolvedProvider) {
+          throw new Error('OAuth callback provider is missing. Try signing in again.');
         }
 
-        if (!result) {
-          throw new Error('OAuth callback could not be validated. Check redirect URI configuration.');
-        }
+        const result = await exchangeOAuthCode({
+          provider: resolvedProvider,
+          code,
+          state,
+          redirectUri: resolvedRedirectUri
+        });
 
         await signIn({ email: result.user.email, password: 'oauth-session', mode: 'login', directSession: result });
         navigate(redirectTo, { replace: true });

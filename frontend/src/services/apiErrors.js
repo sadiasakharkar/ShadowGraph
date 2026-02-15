@@ -24,6 +24,12 @@ export function normalizeApiError(error, fallbackMessage = 'Request failed. Plea
   if (status === 422) {
     return new ApiError('Invalid input. Please check your values and retry.', { status, code: 'VALIDATION_ERROR', details: detail });
   }
+  if (status === 429) {
+    return new ApiError(detail || 'Too many requests. Please wait and try again.', { status, code: 'RATE_LIMITED', details: detail });
+  }
+  if (status === 400) {
+    return new ApiError(detail || fallbackMessage, { status, code: 'BAD_REQUEST', details: detail });
+  }
   if (status >= 500) {
     return new ApiError('Backend service error. Please retry shortly.', { status, code: 'SERVER_ERROR', details: detail });
   }

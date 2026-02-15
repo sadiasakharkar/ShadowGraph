@@ -22,7 +22,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, create_engine
@@ -217,15 +217,19 @@ class UsernameRequest(BaseModel):
 
 
 class ResearchRequest(BaseModel):
-    full_name: str
-    institution: str
+    full_name: str | None = None
+    institution: str | None = None
 
     @field_validator('full_name', 'institution')
     @classmethod
-    def validate_non_empty(cls, value: str) -> str:
-        if not value or not value.strip():
-            raise ValueError('Field cannot be empty')
-        return value.strip()
+    def normalize_text(cls, value: str | None) -> str:
+        return (value or '').strip()
+
+    @model_validator(mode='after')
+    def validate_at_least_one_field(self) -> 'ResearchRequest':
+        if not self.full_name and not self.institution:
+            raise ValueError('Provide at least a full name or an institution')
+        return self
 
 
 class BreachRequest(BaseModel):
@@ -508,6 +512,8 @@ def _ensure_user_settings(db: Session, user: User) -> UserSetting:
 
 @app.on_event('startup')
 def startup() -> None:
+    # Ensure local SQLite schema exists for first-run and after db cleanup.
+    Base.metadata.create_all(bind=engine)
     FACE_GALLERY_DIR.mkdir(parents=True, exist_ok=True)
     if not FACE_GALLERY_META.exists():
         FACE_GALLERY_META.write_text('[]\n', encoding='utf-8')
@@ -1047,53 +1053,134 @@ def _author_names(authors: list[dict[str, Any]]) -> str:
     return ', '.join(names) if names else 'Unknown'
 
 
+def _name_variants(full_name: str) -> list[str]:
+    normalized = re.sub(r'\s+', ' ', (full_name or '').strip())
+    if not normalized:
+        return []
+
+    parts = [part for part in normalized.split(' ') if part]
+    variants: list[str] = [normalized]
+
+    if len(parts) >= 2:
+        reversed_name = ' '.join(reversed(parts))
+        variants.append(reversed_name)
+
+        family = parts[-1]
+        given = ' '.join(parts[:-1])
+        variants.append(f'{family}, {given}')
+
+    # de-duplicate while preserving order
+    seen: set[str] = set()
+    unique: list[str] = []
+    for variant in variants:
+        key = variant.lower()
+        if key not in seen:
+            seen.add(key)
+            unique.append(variant)
+    return unique
+
+
+def _paper_from_crossref_item(item: dict[str, Any]) -> dict[str, Any]:
+    title_values = item.get('title') or []
+    container = item.get('container-title') or []
+    issued = item.get('issued', {}).get('date-parts', [[None]])
+    year = issued[0][0] if issued and issued[0] else None
+    doi = item.get('DOI')
+    url = item.get('URL')
+    title = title_values[0] if title_values else 'Untitled'
+    dedupe_key = (doi or f'{title.lower()}::{year or "na"}').strip()
+
+    return {
+        'title': title,
+        'authors': _author_names(item.get('author', [])),
+        'source': container[0] if container else 'Unknown Source',
+        'year': year,
+        'citations': item.get('is-referenced-by-count', 0),
+        'doi': doi,
+        'url': url,
+        '_dedupe_key': dedupe_key.lower(),
+    }
+
+
 @app.post('/search-research')
 async def search_research(
     payload: ResearchRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict[str, Any]:
-    query_params = {
-        'query.author': payload.full_name,
-        'query.affiliation': payload.institution,
-        'rows': 8,
-        'sort': 'relevance',
-        'order': 'desc',
-    }
+    full_name = (payload.full_name or '').strip()
+    institution = (payload.institution or '').strip()
+    name_variants = _name_variants(full_name)
 
-    papers: list[dict[str, Any]] = []
+    query_params_list: list[dict[str, Any]] = []
+    query_modes_used: list[str] = []
+
+    if name_variants and institution:
+        for variant in name_variants:
+            query_params_list.append(
+                {
+                    'query.author': variant,
+                    'query.affiliation': institution,
+                    'rows': 8,
+                    'sort': 'relevance',
+                    'order': 'desc',
+                }
+            )
+        query_modes_used.append('name_and_institution')
+
+    if name_variants:
+        for variant in name_variants:
+            query_params_list.append(
+                {
+                    'query.author': variant,
+                    'rows': 6,
+                    'sort': 'relevance',
+                    'order': 'desc',
+                }
+            )
+        query_modes_used.append('name_only')
+
+    if institution:
+        query_params_list.append(
+            {
+                'query.affiliation': institution,
+                'rows': 6,
+                'sort': 'relevance',
+                'order': 'desc',
+            }
+        )
+        query_modes_used.append('institution_only')
+
+    papers_by_key: dict[str, dict[str, Any]] = {}
     try:
         async with httpx.AsyncClient(
             timeout=10,
             headers={'User-Agent': 'ShadowGraph/0.3 (mailto:research@shadowgraph.local)'},
         ) as client:
-            response = await client.get('https://api.crossref.org/works', params=query_params)
-            response.raise_for_status()
-            items = response.json().get('message', {}).get('items', [])
-
-        for item in items:
-            title_values = item.get('title') or []
-            container = item.get('container-title') or []
-            issued = item.get('issued', {}).get('date-parts', [[None]])
-            year = issued[0][0] if issued and issued[0] else None
-
-            papers.append(
-                {
-                    'title': title_values[0] if title_values else 'Untitled',
-                    'authors': _author_names(item.get('author', [])),
-                    'source': container[0] if container else 'Unknown Source',
-                    'year': year,
-                    'citations': item.get('is-referenced-by-count', 0),
-                    'doi': item.get('DOI'),
-                    'url': item.get('URL'),
-                }
-            )
+            for query_params in query_params_list:
+                response = await client.get('https://api.crossref.org/works', params=query_params)
+                response.raise_for_status()
+                items = response.json().get('message', {}).get('items', [])
+                for item in items:
+                    paper = _paper_from_crossref_item(item)
+                    key = paper.pop('_dedupe_key')
+                    existing = papers_by_key.get(key)
+                    if not existing or paper.get('citations', 0) > existing.get('citations', 0):
+                        papers_by_key[key] = paper
     except httpx.HTTPError:
-        papers = []
+        papers_by_key = {}
+
+    papers = sorted(
+        papers_by_key.values(),
+        key=lambda row: (row.get('citations', 0), row.get('year') or 0),
+        reverse=True,
+    )[:20]
 
     response_payload = {
-        'full_name': payload.full_name,
-        'institution': payload.institution,
+        'full_name': full_name,
+        'institution': institution,
+        'name_variants_checked': name_variants,
+        'query_modes_used': query_modes_used,
         'papers': papers,
         'provider': 'Crossref',
         'status': 'live-search',

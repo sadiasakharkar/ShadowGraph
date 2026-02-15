@@ -3,6 +3,7 @@
 ShadowGraph is a multi-module digital-footprint intelligence platform for consent-based discovery, exposure monitoring, and risk analysis.
 
 It combines a production-oriented FastAPI backend with a React frontend to run and visualize:
+
 - identity discovery scans,
 - face recognition and anti-spoof analysis,
 - research/publication lookups,
@@ -13,14 +14,17 @@ It combines a production-oriented FastAPI backend with a React frontend to run a
 - report export and operations monitoring.
 
 ## Tagline
+
 Map Your Digital Shadow.
 
 ## Who This Is For
+
 - Security researchers and OSINT practitioners
 - Privacy-focused users auditing their online exposure
 - Engineering teams building digital identity intelligence workflows
 
 ## Core Capabilities
+
 - Authentication and session management
   - Email/password auth with JWT
   - Google/GitHub OAuth backend flows
@@ -54,6 +58,7 @@ Map Your Digital Shadow.
   - Readiness checks
 
 ## Reality Model (Important)
+
 ShadowGraph is a real scanning pipeline, not a static demo UI. However, outputs are intelligence signals, not guaranteed truth.
 
 - Live integrations can return false positives/false negatives.
@@ -62,7 +67,9 @@ ShadowGraph is a real scanning pipeline, not a static demo UI. However, outputs 
 - Breach checks require valid HIBP API credentials.
 
 ## Architecture
+
 ### Frontend
+
 - React (Vite)
 - React Router
 - Tailwind CSS
@@ -71,6 +78,7 @@ ShadowGraph is a real scanning pipeline, not a static demo UI. However, outputs 
 - Axios API client
 
 ### Backend
+
 - FastAPI
 - SQLite + SQLAlchemy ORM
 - Alembic migrations
@@ -80,12 +88,14 @@ ShadowGraph is a real scanning pipeline, not a static demo UI. However, outputs 
 - Report generation (ReportLab)
 
 ### Ops/Delivery
+
 - Dockerfiles (frontend/backend)
 - `docker-compose.yml`
 - GitHub Actions CI
 - Kubernetes manifests under `infra/k8s`
 
 ## Repository Structure
+
 - `frontend/` — React app
 - `backend/` — FastAPI service
 - `docs/` — operational runbooks
@@ -95,12 +105,14 @@ ShadowGraph is a real scanning pipeline, not a static demo UI. However, outputs 
 ## Quick Start (Local)
 
 ### Prerequisites
+
 - Python 3.11+ recommended
 - Node.js 20+
 - Redis (optional but recommended for distributed rate limiting)
 - macOS users for face stack: `cmake`, Xcode build tools
 
 ### 1. Backend setup
+
 ```bash
 cd backend
 python3 -m venv .venv
@@ -119,6 +131,7 @@ python3 -m uvicorn app.main:app --reload --port 8000
 ```
 
 ### 2. Frontend setup
+
 ```bash
 cd frontend
 npm install
@@ -127,11 +140,13 @@ npm run dev
 ```
 
 ### 3. Open app
+
 - Frontend: `http://localhost:5173`
 - Backend health: `http://localhost:8000/health`
 - Backend readiness: `http://localhost:8000/ops/readiness`
 
 ## Environment Configuration
+
 Configure `backend/.env`:
 
 - Required baseline
@@ -147,28 +162,36 @@ Configure `backend/.env`:
   - `GITHUB_CLIENT_SECRET`
 
 See templates and runbooks:
+
 - `backend/.env.example`
 - `docs/SECRETS_TEMPLATE.md`
 - `docs/OAUTH_SETUP.md`
 - `docs/OPS_SETUP.md`
 
 ## OAuth Setup (Required for Google/GitHub Login)
+
 Register these callback URLs in provider consoles:
+
 - `http://localhost:5173/auth?provider=google`
 - `http://localhost:5173/auth?provider=github`
 
 Full instructions:
+
 - `docs/OAUTH_SETUP.md`
 
 ## Face System Setup & Quality
+
 Face matching depends on local gallery entries:
+
 - metadata: `backend/app/data/face_gallery/metadata.json`
 - images: `backend/app/data/face_gallery/`
 
 Quality guide:
+
 - `docs/FACE_QUALITY.md`
 
 ## Run with Makefile (Convenience)
+
 From repo root:
 
 ```bash
@@ -181,11 +204,13 @@ make backend-run
 ```
 
 In another terminal:
+
 ```bash
 cd frontend && npm run dev
 ```
 
 ## API Surface (Selected)
+
 - Auth
   - `POST /auth/signup`
   - `POST /auth/login`
@@ -218,7 +243,9 @@ cd frontend && npm run dev
   - `DELETE /account`
 
 ## Testing
+
 ### Backend
+
 ```bash
 cd backend
 source .venv/bin/activate
@@ -226,34 +253,42 @@ pytest -q
 ```
 
 ### Frontend E2E (Playwright)
+
 ```bash
 cd frontend
 npm run test:e2e
 ```
 
 ## Deployment
+
 ### Docker Compose (local stack)
+
 ```bash
 docker-compose up --build
 ```
 
 ### CI
+
 - Workflow: `.github/workflows/ci.yml`
 - Runs backend tests and frontend build on push/PR.
 
 ### Kubernetes
+
 Reference manifests:
+
 - `infra/k8s/backend-deployment.yaml`
 - `infra/k8s/frontend-deployment.yaml`
 - `infra/k8s/redis-deployment.yaml`
 
 ## Security Notes
+
 - Do not commit real secrets.
 - Rotate exposed OAuth client secrets immediately.
 - Prefer `SHADOWGRAPH_JWT_KEYS` for key rotation.
 - Use Redis in shared/multi-instance environments.
 
 ## Troubleshooting
+
 - `python: command not found`
   - Use `python3` and ensure virtualenv is activated.
 - `alembic: command not found`
@@ -266,4 +301,8 @@ Reference manifests:
   - Inspect `GET /ops/readiness` and fill missing env/provider setup.
 
 ## License / Usage
+
 Define your license and permitted usage model before production distribution.
+
+
+![Visitor Count](https://visitor-badge.laobi.icu/badge?page_id=sadiasakharkar.ShadowGraph)

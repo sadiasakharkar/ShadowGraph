@@ -16,8 +16,8 @@ export default function ResearchPaperPage() {
   const { info, success, error: showError } = useToast();
 
   const run = async () => {
-    if (!name.trim() || !institution.trim()) {
-      info('Enter full name and institution first.');
+    if (!name.trim() && !institution.trim()) {
+      info('Enter at least a full name or an institution.');
       return;
     }
 
@@ -39,15 +39,18 @@ export default function ResearchPaperPage() {
 
   return (
     <div>
-      <PageHeader title="Research Paper Detection" subtitle="Publication fingerprint mapping prepared for Semantic Scholar and ORCID API adapters." />
+      <PageHeader title="Research Paper Detection" subtitle="Find papers by full name, swapped name order, only name, only institution, or both together." />
 
       <GlassCard className="p-5 md:p-6">
+        <p className="mb-3 text-sm text-muted">
+          Tip: You can enter both fields, only full name, or only institution.
+        </p>
         <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full Name" className="sg-input" />
-          <input value={institution} onChange={(e) => setInstitution(e.target.value)} placeholder="Institution" className="sg-input" />
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full Name (e.g., Saadya Sakharkar)" className="sg-input" />
+          <input value={institution} onChange={(e) => setInstitution(e.target.value)} placeholder="Institution (optional)" className="sg-input" />
           <button onClick={run} className="sg-button-primary flex items-center justify-center gap-2">
             {loading ? <LoadingSpinner /> : null}
-            Search Publications
+            Search Research Papers
           </button>
         </div>
       </GlassCard>
@@ -68,7 +71,7 @@ export default function ResearchPaperPage() {
             </GlassCard>
           ))}
 
-          {!papers.length && !loading ? <EmptyState className="xl:col-span-2" message="Submit name and institution to fetch publication results." /> : null}
+          {!papers.length && !loading ? <EmptyState className="xl:col-span-2" message="No papers found. Try full name, reversed name order, or institution-only search." /> : null}
         </div>
       ) : null}
     </div>
