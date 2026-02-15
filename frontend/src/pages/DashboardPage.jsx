@@ -36,6 +36,14 @@ function StorySection({ id, index, title, subtitle, children }) {
         <p className="sg-kicker">Chapter {index}</p>
         <h2 className="text-3xl font-semibold tracking-tight md:text-5xl">{title}</h2>
         <p className="mt-3 text-base leading-8 text-muted">{subtitle}</p>
+        <div className="mt-4 grid gap-2 md:grid-cols-2">
+          <div className="rounded-xl border border-white/10 bg-surface/60 px-4 py-3 text-sm text-muted">
+            What to do: fill the form in this section and press the main action button.
+          </div>
+          <div className="rounded-xl border border-white/10 bg-surface/60 px-4 py-3 text-sm text-muted">
+            What you get: clear results with links, confidence, and next-step signals.
+          </div>
+        </div>
       </div>
       {children}
     </motion.section>

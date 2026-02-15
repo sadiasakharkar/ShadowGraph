@@ -1173,6 +1173,81 @@ def _name_variants(full_name: str) -> list[str]:
     return unique
 
 
+def _tokenize_name(value: str) -> list[str]:
+    cleaned = re.sub(r'[^a-z\s]', ' ', (value or '').lower())
+    return [part for part in cleaned.split() if part]
+
+
+def _name_profiles(variants: list[str]) -> list[dict[str, Any]]:
+    profiles: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for variant in variants:
+        tokens = _tokenize_name(variant)
+        if not tokens:
+            continue
+        key = ' '.join(tokens)
+        if key in seen:
+            continue
+        seen.add(key)
+        profiles.append(
+            {
+                'tokens': tokens,
+                'family': tokens[-1],
+                'given_tokens': tokens[:-1],
+            }
+        )
+    return profiles
+
+
+def _author_match_score(author: dict[str, Any], profiles: list[dict[str, Any]]) -> float:
+    author_given = _tokenize_name(author.get('given', ''))
+    author_family_tokens = _tokenize_name(author.get('family', ''))
+    author_family = author_family_tokens[-1] if author_family_tokens else ''
+    best = 0.0
+
+    for profile in profiles:
+        score = 0.0
+        profile_family = profile['family']
+        profile_given = profile['given_tokens']
+
+        if profile_family and author_family and profile_family == author_family:
+            score += 0.7
+        elif profile_family and author_family and (
+            author_family.startswith(profile_family) or profile_family.startswith(author_family)
+        ):
+            score += 0.45
+
+        if profile_given and author_given:
+            given_exact = any(token in author_given for token in profile_given)
+            if given_exact:
+                score += 0.3
+            else:
+                # Handle initials, e.g., "Sadia" vs "S."
+                given_initial_match = any(
+                    token and any(g and g[0] == token[0] for g in author_given)
+                    for token in profile_given
+                )
+                if given_initial_match:
+                    score += 0.2
+        elif not profile_given and author_given:
+            # Single-token search term; allow weak match against given name.
+            if any(profile_family == g for g in author_given):
+                score += 0.25
+
+        best = max(best, min(score, 1.0))
+    return best
+
+
+def _paper_passes_name_filter(item: dict[str, Any], profiles: list[dict[str, Any]]) -> bool:
+    if not profiles:
+        return True
+    authors = item.get('author', []) or []
+    if not authors:
+        return False
+
+    return any(_author_match_score(author, profiles) >= 0.65 for author in authors)
+
+
 def _paper_from_crossref_item(item: dict[str, Any]) -> dict[str, Any]:
     title_values = item.get('title') or []
     container = item.get('container-title') or []
@@ -1204,6 +1279,7 @@ async def search_research(
     full_name = (payload.full_name or '').strip()
     institution = (payload.institution or '').strip()
     name_variants = _name_variants(full_name)
+    name_profiles = _name_profiles(name_variants)
 
     query_params_list: list[dict[str, Any]] = []
     query_modes_used: list[str] = []
@@ -1255,6 +1331,8 @@ async def search_research(
                 response.raise_for_status()
                 items = response.json().get('message', {}).get('items', [])
                 for item in items:
+                    if full_name and not _paper_passes_name_filter(item, name_profiles):
+                        continue
                     paper = _paper_from_crossref_item(item)
                     key = paper.pop('_dedupe_key')
                     existing = papers_by_key.get(key)
