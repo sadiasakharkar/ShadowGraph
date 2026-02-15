@@ -13,7 +13,7 @@ def test_health_ok():
 def test_auth_signup_and_login_roundtrip():
     client = TestClient(app)
     email = 'smoke_shadowgraph@example.com'
-    password = 'secret123'
+    password = 'StrongPass1'
 
     signup = client.post('/auth/signup', json={'email': email, 'password': password, 'name': 'Smoke'})
     assert signup.status_code in (200, 409)

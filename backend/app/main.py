@@ -73,7 +73,8 @@ engine = create_engine(DATABASE_URL, connect_args={'check_same_thread': False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
+# Use PBKDF2-SHA256 for cross-platform stability (avoids bcrypt backend issues on some Python/macOS builds).
+pwd_context = CryptContext(schemes=['pbkdf2_sha256'], deprecated='auto')
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/login')
 
 FACE_GALLERY_DIR = BASE_DIR / 'data' / 'face_gallery'
