@@ -36,7 +36,11 @@ export default function UsernameDiscoveryPage({ embedded = false }) {
       setRows(result);
       success('Username scan completed.');
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('shadowgraph:data-updated', { detail: { source: 'username_scan' } }));
+        window.dispatchEvent(
+          new CustomEvent('shadowgraph:data-updated', {
+            detail: { source: 'username_scan', query: username.trim(), rows: result }
+          })
+        );
       }
     } catch (err) {
       const message = getDisplayError(err, 'Failed to scan username.');

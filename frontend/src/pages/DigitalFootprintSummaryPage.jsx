@@ -8,6 +8,7 @@ import { getDisplayError } from '../services/apiErrors';
 
 export default function DigitalFootprintSummaryPage({ embedded = false }) {
   const [data, setData] = useState(null);
+  const [liveSearch, setLiveSearch] = useState({ query: '', rows: [] });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -29,7 +30,14 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
   }, []);
 
   useEffect(() => {
-    const handler = () => {
+    const handler = (event) => {
+      const detail = event?.detail || {};
+      if (detail.source === 'username_scan') {
+        setLiveSearch({
+          query: detail.query || '',
+          rows: Array.isArray(detail.rows) ? detail.rows : []
+        });
+      }
       load();
     };
     window.addEventListener('shadowgraph:data-updated', handler);
@@ -44,6 +52,19 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
     breach_records_found: Number(data?.breach_records_found) || 0,
     profiles: Array.isArray(data?.profiles) ? data.profiles : []
   };
+  const liveRows = Array.isArray(liveSearch.rows) ? liveSearch.rows : [];
+  const effectiveProfiles = liveRows.length
+    ? liveRows.map((row) => ({
+        platform: row.platform,
+        category: 'Search Result',
+        username: row.username,
+        profile_url: row.link
+      }))
+    : safeData.profiles;
+  const effectiveActivePlatforms = liveRows.length
+    ? [...new Set(liveRows.map((row) => row.platform).filter(Boolean))]
+    : safeData.active_platforms;
+
   return (
     <div className="text-text">
       {!embedded ? <PageHeader title="Digital Footprint Summary" subtitle="A simple overview of where you appear online." /> : null}
@@ -71,7 +92,7 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
               </div>
               <div className="rounded-xl border border-white/10 bg-surface/70 p-3">
                 <p className="text-xs uppercase tracking-[0.16em] text-muted">Active Platforms</p>
-                <p className="mt-2 text-3xl font-semibold text-text">{safeData.active_platforms.length}</p>
+                <p className="mt-2 text-3xl font-semibold text-text">{effectiveActivePlatforms.length}</p>
               </div>
               <div className="rounded-xl border border-white/10 bg-surface/70 p-3">
                 <p className="text-xs uppercase tracking-[0.16em] text-muted">Research Records</p>
@@ -84,10 +105,13 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
             </div>
 
             <div className="mt-5 flex flex-wrap gap-2">
-              {safeData.active_platforms.map((platform) => (
+              {effectiveActivePlatforms.map((platform) => (
                 <span key={platform} className="sg-chip">{platform}</span>
               ))}
             </div>
+            {liveSearch.query ? (
+              <p className="mt-3 text-xs text-muted">Live from Chapter 2: {liveSearch.query}</p>
+            ) : null}
           </GlassCard>
 
           <GlassCard className="p-5">
@@ -113,11 +137,11 @@ export default function DigitalFootprintSummaryPage({ embedded = false }) {
 
           <GlassCard className="p-5 xl:col-span-2">
             <h3 className="text-lg font-semibold text-text">Profiles found</h3>
-            {!safeData.profiles.length ? (
+            {!effectiveProfiles.length ? (
               <EmptyState className="mt-3" message="No personal profiles in summary yet. Run Chapter 1 or Chapter 2 with your own identity." />
             ) : (
               <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {safeData.profiles.map((row, idx) => (
+                {effectiveProfiles.map((row, idx) => (
                   <div key={`${row.platform || 'platform'}-${row.profile_url || 'url'}-${idx}`} className="rounded-xl border border-white/10 bg-surface/70 p-3">
                     <p className="text-sm font-medium text-text">{row.platform}</p>
                     <p className="text-xs text-muted">{row.category}</p>
